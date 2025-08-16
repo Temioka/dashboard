@@ -69,11 +69,13 @@
     --radius-xl: 24px;
     --radius-full: 9999px;
     
-    /* Переходы и анимации */
+    /* Переходы и анимации - Современные cubic-bezier */
     --transition-fast: 200ms cubic-bezier(0.4, 0, 0.2, 1);
-    --transition-normal: 300ms cubic-bezier(0.4, 0, 0.2, 1);
-    --transition-slow: 500ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-normal: 300ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    --transition-slow: 500ms cubic-bezier(0.19, 1, 0.22, 1);
     --transition-bounce: 300ms cubic-bezier(0.34, 1.56, 0.64, 1);
+    --transition-elastic: 400ms cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    --transition-smooth: 250ms cubic-bezier(0.25, 0.1, 0.25, 1);
     
     /* Шрифты */
     --font-sans: 'Montserrat', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
@@ -501,27 +503,58 @@ img {
     min-width: 0;
     padding: var(--space-6);
     margin-left: var(--space-6);
-    background-color: var(--white);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-lg);
-    transition: all var(--transition-normal);
-    animation: fadeIn var(--transition-slow) forwards;
+    
+    /* Современный glassmorphism для основного контента */
+    background: linear-gradient(135deg, 
+        rgba(255, 255, 255, 0.95) 0%, 
+        rgba(248, 248, 248, 0.9) 50%, 
+        rgba(255, 255, 255, 0.85) 100%);
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    
+    border-radius: var(--radius-xl);
+    box-shadow: 
+        0 12px 40px rgba(0, 0, 0, 0.1),
+        0 8px 16px rgba(255, 115, 0, 0.05),
+        inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    transition: all cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.4s;
+    animation: fadeInGlass 0.8s cubic-bezier(0.19, 1, 0.22, 1) forwards;
     opacity: 0;
     transform-origin: center;
     position: relative;
     z-index: var(--z-low);
     
     /* Ключевые исправления */
-    height: auto;           /* Высота по содержимому */
-    min-height: 75vh;       /* Минимальная высота остается */
-    max-height: 100vh;      /* Максимальная высота не больше высоты экрана */
-    overflow-y: auto;       /* Скролл появляется только при необходимости */
-    overflow-x: hidden;     /* Предотвращает горизонтальную прокрутку */
+    height: auto;
+    min-height: 75vh;
+    max-height: 100vh;
+    overflow-y: auto;
+    overflow-x: hidden;
     
     /* Предотвращение нежелательного скролла */
-    margin-bottom: 0;       /* Убираем нижний отступ */
-    display: flex;          /* Используем flexbox */
-    flex-direction: column; /* Колоночное направление */
+    margin-bottom: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Улучшенная анимация появления с glassmorphism */
+@keyframes fadeInGlass {
+    0% {
+        opacity: 0;
+        transform: translateY(30px) scale(0.95);
+        backdrop-filter: blur(0px);
+    }
+    50% {
+        opacity: 0.7;
+        transform: translateY(10px) scale(0.98);
+        backdrop-filter: blur(15px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        backdrop-filter: blur(25px);
+    }
 }
 
 .content-wrapper {
@@ -580,15 +613,26 @@ html, body {
 /*==============================================
     SIDEBAR И НАВИГАЦИЯ
 ==============================================*/
-/* Основной стиль боковой панели */
+/* Основной стиль боковой панели с glassmorphism */
 .sidebar {
     height: 100vh;
     overscroll-behavior: none;
     position: fixed;
     width: var(--sidebar-width);
     min-height: 100vh;
-    background: var(--sidebar-gradient);
-    box-shadow: var(--shadow-lg);
+    
+    /* Современный glassmorphism эффект */
+    background: linear-gradient(135deg, 
+        rgba(45, 49, 66, 0.9) 0%, 
+        rgba(77, 80, 97, 0.85) 50%, 
+        rgba(28, 31, 43, 0.9) 100%);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    
+    box-shadow: 
+        0 8px 32px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
     color: var(--white);
     display: flex;
     flex-direction: column;
@@ -596,9 +640,9 @@ html, body {
     top: 0;
     left: 0;
     z-index: var(--z-mid);
-    transition: all var(--transition-normal), transform var(--transition-bounce);
-    overflow: visible; /* Важно для видимости эффекта за пределами */
-    border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
+    transition: all cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.4s;
+    overflow: visible;
+    border-radius: 0 var(--radius-xl) var(--radius-xl) 0;
 }
 
 /* Верхний градиентный эффект (сохраняем существующий) */
@@ -1394,27 +1438,53 @@ html, body {
 }
 
 /*==============================================
-    КНОПКИ ДАННЫХ
+    КНОПКИ ДАННЫХ - GLASSMORPHISM REDESIGN
 ==============================================*/
-/* Стили для кнопок */
+/* Стили для кнопок с современным glassmorphism */
 .data-button {
     position: relative;
-    background: linear-gradient(145deg, var(--white), var(--off-white));
-    border-radius: var(--radius-lg);
-    padding: var(--space-8) var(--space-4); /* Отступы внутри кнопки */
-    min-height: 370px; /* Увеличенная минимальная высота */
-    min-width: 500px; /* Увеличенная минимальная ширина кнопки */
-    box-shadow: var(--shadow-button);
-    transition: all var(--transition-normal), transform var(--transition-bounce);
+    
+    /* Glassmorphism эффект */
+    background: linear-gradient(135deg, 
+        rgba(255, 255, 255, 0.7) 0%, 
+        rgba(255, 255, 255, 0.5) 50%, 
+        rgba(255, 255, 255, 0.6) 100%);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    
+    border-radius: var(--radius-xl);
+    padding: var(--space-8) var(--space-4);
+    min-height: 370px;
+    min-width: 500px;
+    box-shadow: 
+        0 8px 32px rgba(0, 0, 0, 0.1),
+        0 4px 16px rgba(255, 115, 0, 0.05),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    transition: all cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.4s;
     display: flex;
     align-items: center;
     justify-content: center;
-    overflow: visible; /* Позволяет контенту выходить за границы кнопки */
+    overflow: visible;
     z-index: 1;
-    border: 2px solid transparent;
+    will-change: transform, box-shadow;
 }
 
-/* Стилизация содержимого кнопок с полным отображением текста */
+/* Современные эффекты при наведении */
+.data-button:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 
+        0 16px 48px rgba(0, 0, 0, 0.15),
+        0 8px 24px rgba(255, 115, 0, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    border-color: rgba(255, 115, 0, 0.2);
+    background: linear-gradient(135deg, 
+        rgba(255, 255, 255, 0.8) 0%, 
+        rgba(255, 255, 255, 0.6) 50%, 
+        rgba(255, 255, 255, 0.7) 100%);
+}
+
+/* Стилизация содержимого кнопок */
 .data-button a {
     display: flex;
     flex-direction: column;
@@ -1427,140 +1497,79 @@ html, body {
     text-align: center;
     z-index: 3;
     position: relative;
-    transition: all var(--transition-normal);
-    padding: var(--space-2); /* Уменьшил отступы для большего пространства */
+    transition: all cubic-bezier(0.19, 1, 0.22, 1) 0.3s;
+    padding: var(--space-2);
 }
 
 .data-button a i {
-    font-size: var(--font-size-3xl); /* Увеличенный размер иконок */
-    margin-bottom: var(--space-4); /* Отступ снизу от иконки */
-    opacity: 0.7;
-    transition: all var(--transition-normal);
+    font-size: var(--font-size-3xl);
+    margin-bottom: var(--space-4);
+    opacity: 0.8;
+    transition: all cubic-bezier(0.34, 1.56, 0.64, 1) 0.3s;
 }
 
 .data-button a .button-text {
-    font-size: var(--font-size-lg); /* Возвращаем стандартный размер текста */
-    line-height: 1.4; /* Нормальная высота строки для улучшения читаемости */
-    transition: all var(--transition-normal);
-    white-space: normal; /* Разрешаем перенос текста */
-    width: 100%; /* Занимает всю ширину */
+    font-size: var(--font-size-lg);
+    line-height: 1.4;
+    transition: all cubic-bezier(0.19, 1, 0.22, 1) 0.3s;
+    white-space: normal;
+    width: 100%;
     margin: 0;
     padding: 0;
 }
 
-.data-button::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: var(--radius-lg);
-    background: linear-gradient(
-        125deg,
-        rgba(255, 81, 0, 0.05),
-        rgba(255, 140, 0, 0.05),
-        rgba(255, 165, 0, 0.05),
-        rgba(255, 81, 0, 0.05)
-    );
-    background-size: 300% 300%;
-    z-index: -1;
-    opacity: 0;
-    transition: opacity var(--transition-normal);
+/* Улучшенные эффекты при наведении на контент */
+.data-button:hover a {
+    color: var(--primary-color);
+    transform: translateY(-2px);
 }
 
-.data-button::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: var(--radius-lg);
-    background: linear-gradient(
-        45deg,
-        transparent,
-        rgba(255, 81, 0, 0),
-        rgba(255, 140, 0, 0),
-        rgba(255, 165, 0, 0),
-        transparent
-    );
-    background-size: 300% 300%;
-    z-index: -1;
-    opacity: 0;
-    transition: opacity var(--transition-normal);
-    -webkit-mask: 
-        linear-gradient(#fff 0 0) content-box, 
-        linear-gradient(#fff 0 0);
-    mask-composite: exclude;
-    -webkit-mask-composite: xor;
-    padding: 2px;
-}
-
-.data-button .shine {
-    position: absolute;
-    top: -200%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: linear-gradient(
-        to right,
-        rgba(255, 255, 255, 0) 0%,
-        rgba(255, 255, 255, 0.3) 50%,
-        rgba(255, 255, 255, 0) 100%
-    );
-    transform: rotate(45deg);
-    transition: all var(--transition-normal);
-    opacity: 0;
-    z-index: 2;
-    pointer-events: none;
-}
-
-/* Эффекты при наведении */
-.data-button:hover {
-    transform: translateY(-7px) scale(1.02);
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-    border-color: rgba(255, 81, 0, 0.1);
+.data-button:hover a i {
+    opacity: 1;
+    transform: translateY(-4px) rotate(-5deg) scale(1.1);
+    color: var(--primary-color);
+    text-shadow: 0 4px 8px rgba(255, 115, 0, 0.3);
 }
 
 .data-button:hover a .button-text {
     font-weight: 700;
     color: var(--primary-color);
-    /* Не меняем white-space, чтобы текст оставался в одну строку */
+    transform: translateY(-2px);
+}
+
+/* Современный эффект свечения */
+.data-button::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: var(--radius-xl);
+    background: linear-gradient(45deg, 
+        transparent 30%, 
+        rgba(255, 115, 0, 0.1) 50%, 
+        transparent 70%);
+    opacity: 0;
+    transition: opacity cubic-bezier(0.19, 1, 0.22, 1) 0.4s;
+    z-index: -1;
 }
 
 .data-button:hover::before {
     opacity: 1;
-    animation: gradientFlow 5s ease infinite;
-    background: linear-gradient(
-        125deg,
-        rgba(255, 81, 0, 0.08),
-        rgba(255, 140, 0, 0.08),
-        rgba(255, 165, 0, 0.08),
-        rgba(255, 81, 0, 0.08)
-    );
+    animation: subtleGlow 2s ease-in-out infinite;
 }
 
-.data-button:hover::after {
-    opacity: 1;
-    animation: gradientFlow 3s ease infinite;
-    background: linear-gradient(
-        45deg,
-        transparent,
-        rgba(255, 81, 0, 0.5),
-        rgba(255, 140, 0, 0.6),
-        rgba(255, 165, 0, 0.5),
-        transparent
-    );
-}
-
-.data-button:hover .shine {
-    opacity: 1;
-    animation: shine 1.5s forwards;
-}
-
-.data-button:hover a {
-    color: var(--primary-color);
-}
-
-.data-button:hover a i {
-    opacity: 1;
-    transform: translateY(-3px) rotate(-10deg);
-    color: var(--primary-color);
+@keyframes subtleGlow {
+    0%, 100% {
+        background: linear-gradient(45deg, 
+            transparent 30%, 
+            rgba(255, 115, 0, 0.1) 50%, 
+            transparent 70%);
+    }
+    50% {
+        background: linear-gradient(45deg, 
+            transparent 25%, 
+            rgba(255, 115, 0, 0.2) 50%, 
+            transparent 75%);
+    }
 }
 
 /* Эффект нажатия */
@@ -1650,21 +1659,21 @@ html, body {
     width: 100%;
     height: 100%;
     background-color: rgba(0, 0, 0, 0.7);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
     z-index: var(--z-modal);
     display: flex;
     justify-content: center;
     align-items: center;
     opacity: 0;
     visibility: hidden;
-    transition: all 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+    transition: all cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.5s;
 }
 
 .overlay.active {
     opacity: 1;
     visibility: visible;
-    animation: fadeInBackground 0.5s forwards;
+    animation: fadeInBackground 0.6s cubic-bezier(0.19, 1, 0.22, 1) forwards;
 }
 
 @keyframes fadeInBackground {
@@ -1674,25 +1683,31 @@ html, body {
     }
     to {
         background-color: rgba(0, 0, 0, 0.7);
-        backdrop-filter: blur(12px);
+        backdrop-filter: blur(15px);
     }
 }
 
 .modal {
-    background: linear-gradient(135deg, var(--modal-bg-start), var(--modal-bg-end));
-    border-radius: 24px;
-    box-shadow: var(--modal-shadow), 0 10px 30px rgba(255, 81, 0, 0.2);
+    background: linear-gradient(135deg, 
+        rgba(30, 30, 40, 0.95) 0%, 
+        rgba(25, 25, 35, 0.92) 50%, 
+        rgba(20, 20, 30, 0.95) 100%);
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 28px;
+    box-shadow: 
+        0 24px 64px rgba(0, 0, 0, 0.5),
+        0 12px 32px rgba(255, 115, 0, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
     width: 400px;
     max-width: 95%;
     overflow: hidden;
     position: relative;
     transform: translateY(50px) scale(0.95);
     opacity: 0;
-    transition: transform 0.5s cubic-bezier(0.19, 1, 0.22, 1),
-                opacity 0.5s cubic-bezier(0.19, 1, 0.22, 1);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    transition: transform cubic-bezier(0.19, 1, 0.22, 1) 0.6s,
+                opacity cubic-bezier(0.19, 1, 0.22, 1) 0.6s;
 }
 
 /* Декоративный фоновый элемент */
@@ -2520,7 +2535,7 @@ html, body {
 }
 
 /*==============================================
-    АНИМИРОВАННЫЙ ФОН И ИНЕТРАКТИВНЫЕ ЭЛЕМЕНТЫ
+    АНИМИРОВАННЫЙ ФОН И ИНТЕРАКТИВНЫЕ ЭЛЕМЕНТЫ
 ==============================================*/
 /* Стили для анимированного фона (добавляется JS скриптом) */
 .animated-background {
@@ -2532,40 +2547,87 @@ html, body {
     z-index: -1;
     overflow: hidden;
     pointer-events: none;
+    will-change: transform;
+    transform: translateZ(0);
+    backface-visibility: hidden;
 }
 
+/* Базовые стили для частиц */
 .particle {
     position: absolute;
-    border-radius: var(--radius-full);
-    background-color: rgba(255, 255, 255, 0.8);
     pointer-events: none;
-    animation: floatElements 15s ease-in-out infinite;
-    opacity: 0.4;
-    box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+    will-change: transform, opacity;
+    backface-visibility: hidden;
     transform-origin: center;
 }
 
-.particle.glass {
-    background-color: rgba(255, 255, 255, 0.2);
-    border: 1px solid rgba(255, 255, 255, 0.4);
-    backdrop-filter: blur(2px);
-    border-radius: var(--radius-md);
+/* Круглые частицы */
+.particle.circle {
+    border-radius: 50%;
+    animation: floatParticle 60s cubic-bezier(0.4, 0, 0.2, 1) infinite alternate;
 }
 
-.particle.line {
-    width: 100px !important;
-    height: 1px !important;
-    background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.8), transparent);
+/* Квадратные частицы */
+.particle.square {
+    border-radius: 8px;
+    animation: floatParticle 65s cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite alternate;
 }
 
+/* Гексагональные частицы */
+.particle.hexagon {
+    border-radius: 8px;
+    clip-path: polygon(30% 0%, 70% 0%, 100% 50%, 70% 100%, 30% 100%, 0% 50%);
+    animation: floatParticle 70s cubic-bezier(0.19, 1, 0.22, 1) infinite alternate;
+}
+
+/* Улучшенная анимация частиц */
+@keyframes floatParticle {
+    0% {
+        transform: translate3d(0, 0, calc(var(--depth, 0) * 30px)) rotate(0deg) scale(0.8);
+        opacity: 0.3;
+    }
+    25% {
+        transform: translate3d(20px, -30px, calc(var(--depth, 0) * 30px)) rotate(90deg) scale(1);
+        opacity: 0.7;
+    }
+    50% {
+        transform: translate3d(-10px, 40px, calc(var(--depth, 0) * 30px)) rotate(180deg) scale(1.1);
+        opacity: 0.5;
+    }
+    75% {
+        transform: translate3d(-25px, -20px, calc(var(--depth, 0) * 30px)) rotate(270deg) scale(0.9);
+        opacity: 0.8;
+    }
+    100% {
+        transform: translate3d(10px, 15px, calc(var(--depth, 0) * 30px)) rotate(360deg) scale(1);
+        opacity: 0.4;
+    }
+}
+
+/* Эффект ряби для интерактивности */
 .ripple {
     position: absolute;
     border-radius: 50%;
     transform: scale(0);
-    background: rgba(255, 255, 255, 0.6);
+    background: radial-gradient(circle, rgba(255, 115, 0, 0.6) 0%, rgba(255, 115, 0, 0.2) 50%, transparent 100%);
     pointer-events: none;
-    animation: ripple 0.8s linear;
+    animation: modernRipple 1.2s cubic-bezier(0.19, 1, 0.22, 1);
     opacity: 0;
+}
+
+@keyframes modernRipple {
+    0% {
+        transform: scale(0);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.5);
+        opacity: 0.5;
+    }
+    100% {
+        transform: scale(3);
+        opacity: 0;
+    }
 }
 
 /*==============================================

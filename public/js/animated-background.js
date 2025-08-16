@@ -1,46 +1,52 @@
 const AnimationConfig = {
     particles: {
-        count: 30, 
-        minSize: 25,
-        maxSize: 50,
+        count: 35, 
+        minSize: 20,
+        maxSize: 60,
         colors: [
-            'rgba(255, 165, 0, 0.65)',
-            'rgba(255, 140, 0, 0.70)',
-            'rgba(255, 99, 71, 0.65)',
-            'rgba(255, 69, 0, 0.75)',
-            'rgba(255, 215, 0, 0.60)'
+            'rgba(255, 115, 0, 0.8)',   // Primary orange
+            'rgba(255, 140, 0, 0.75)',  // Light orange  
+            'rgba(255, 165, 0, 0.7)',   // Gold orange
+            'rgba(255, 81, 0, 0.85)',   // Dark orange
+            'rgba(45, 49, 66, 0.3)'     // Accent dark gray
         ],
         types: {
-            circle: 0.9,  // Увеличен шанс круглых частиц (с 0.8 до 0.9)
-            square: 0.1,  // 10% chance
-            triangle: 0, // Убраны треугольники (они ресурсоёмки)
-            glass: 0     // Убраны стеклянные эффекты (они ресурсоёмки)
+            circle: 0.6,      // Balanced circles
+            square: 0.25,     // Modern squares
+            hexagon: 0.15,    // New geometric hexagons
+            triangle: 0       // Removed for performance
         },
         animation: {
-            minDuration: 45, // Увеличено время анимации с 30 до 45
-            maxDuration: 60, // Увеличено с 45 до 60
-            easing: 'linear' // Самая эффективная функция плавности
+            minDuration: 50,  // Smoother longer animations
+            maxDuration: 75,  // Extended duration
+            easing: 'cubic-bezier(0.4, 0, 0.2, 1)' // Material design easing
         }
     },
     effects: {
         parallax: {
-            depth: 4, // Уменьшена глубина (с 6 до 4)
-            intensity: 15, // Снижена интенсивность (с 25 до 15)
-            transitionSpeed: '1.5s' // Увеличена плавность
+            depth: 6,         // Restored depth for modern feel
+            intensity: 20,    // Balanced intensity
+            transitionSpeed: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)' // Smooth easing
         },
         ripple: {
-            duration: 1000, // Уменьшено время (с 1500 до 1000)
-            easing: 'ease-out'
+            duration: 1200,   // Slightly longer ripples
+            easing: 'cubic-bezier(0.19, 1, 0.22, 1)' // Smooth bounce
+        },
+        glassmorphism: {
+            enabled: true,
+            blur: 15,         // Glass blur effect
+            opacity: 0.1     // Subtle glass particles
         }
     },
-    refreshInterval: 300000,  // 5 minutes - значительно увеличен интервал обновления (с 2 до 5 минут)
+    refreshInterval: 240000,  // 4 minutes - optimized refresh
     performance: {
-        useSimpleRendering: true, // Использовать упрощенный рендеринг
-        disableEffectsOnMobile: true, // Отключать эффекты на мобильных устройствах
-        limitActiveAnimations: true, // Ограничить количество одновременных анимаций
-        maxActiveAnimations: 2, // Уменьшено с 3 до 2
-        useRequestIdleCallback: true, // Добавлена опция использования requestIdleCallback
-        disableOnLowFPS: true // Добавлена опция отключения анимаций при низком FPS
+        useSimpleRendering: false, // Enable advanced rendering
+        disableEffectsOnMobile: true,
+        limitActiveAnimations: true,
+        maxActiveAnimations: 4,    // Increased for better visual appeal
+        useRequestIdleCallback: true,
+        disableOnLowFPS: true,
+        enableGPUAcceleration: true // New GPU acceleration
     }
 };
 
@@ -285,43 +291,81 @@ class ParticleAnimator {
         const particle = document.createElement('div');
         const config = AnimationConfig.particles;
         
-        // Упрощаем выбор типа частицы - только круги и квадраты
-        const isCircle = Math.random() < config.types.circle;
-        particle.className = isCircle ? 'particle' : 'particle square';
+        // Enhanced particle type selection with new shapes
+        const rand = Math.random();
+        let particleType = 'circle';
         
-        // Оптимизированные размеры и позиции
+        if (rand < config.types.circle) {
+            particleType = 'circle';
+        } else if (rand < config.types.circle + config.types.square) {
+            particleType = 'square';
+        } else if (rand < config.types.circle + config.types.square + config.types.hexagon) {
+            particleType = 'hexagon';
+        }
+        
+        particle.className = `particle ${particleType}`;
+        
+        // Optimized sizes and positions
         const size = config.minSize + Math.random() * (config.maxSize - config.minSize);
         const xPos = Math.random() * 100;
         const yPos = Math.random() * 100;
         const color = config.colors[Math.floor(Math.random() * config.colors.length)];
         
-        // Используем меньшую глубину для параллакса
+        // Enhanced depth calculation
         const depth = Math.random() * (this.isLowPerformance ? 2 : AnimationConfig.effects.parallax.depth);
         
-        // Устанавливаем базовые стили
+        // Apply glassmorphism effects if enabled
+        const applyGlassmorphism = config.effects && config.effects.glassmorphism && config.effects.glassmorphism.enabled;
+        
+        // Set base styles
         particle.style.width = `${size}px`;
         particle.style.height = `${size}px`;
         particle.style.left = `${xPos}%`;
         particle.style.top = `${yPos}%`;
-        particle.style.backgroundColor = color;
-        particle.style.opacity = `${0.3 + Math.random() * 0.4}`; // Немного меньше максимальная непрозрачность
+        particle.style.opacity = `${0.4 + Math.random() * 0.5}`;
         
-        // Оптимизированная трансформация
+        // Apply glassmorphism or solid color
+        if (applyGlassmorphism && !this.isLowPerformance) {
+            particle.style.background = `${color}`;
+            particle.style.backdropFilter = `blur(${config.effects.glassmorphism.blur}px)`;
+            particle.style.webkitBackdropFilter = `blur(${config.effects.glassmorphism.blur}px)`;
+            particle.style.border = '1px solid rgba(255, 255, 255, 0.18)';
+        } else {
+            particle.style.backgroundColor = color;
+        }
+        
+        // Shape-specific styling
+        if (particleType === 'circle') {
+            particle.style.borderRadius = '50%';
+        } else if (particleType === 'square') {
+            particle.style.borderRadius = '8px';
+        } else if (particleType === 'hexagon') {
+            particle.style.borderRadius = '8px';
+            particle.style.clipPath = 'polygon(30% 0%, 70% 0%, 100% 50%, 70% 100%, 30% 100%, 0% 50%)';
+        }
+        
+        // GPU-accelerated transforms
         if (this.isLowPerformance || AnimationConfig.performance.useSimpleRendering) {
             particle.style.transform = `translate(0, 0) rotate(${Math.random() * 360}deg)`;
         } else {
             particle.style.transform = `translate3d(0, 0, ${depth * 30}px) rotate(${Math.random() * 360}deg)`;
             particle.style.willChange = 'transform, opacity';
+            if (AnimationConfig.performance.enableGPUAcceleration) {
+                particle.style.transformStyle = 'preserve-3d';
+                particle.style.backfaceVisibility = 'hidden';
+            }
         }
         
-        // Используем более долгие и редкие анимации
+        // Enhanced animation timing with cubic-bezier
         particle.style.animationDuration = `${config.animation.minDuration + Math.random() * 
             (config.animation.maxDuration - config.animation.minDuration)}s`;
         particle.style.animationTimingFunction = config.animation.easing;
-        particle.style.animationDelay = `${Math.random() * config.animation.minDuration * 0.5}s`;
+        particle.style.animationDelay = `${Math.random() * config.animation.minDuration * 0.3}s`;
+        particle.style.animationName = 'floatParticle';
+        particle.style.animationIterationCount = 'infinite';
+        particle.style.animationDirection = 'alternate';
         particle.style.setProperty('--depth', depth.toFixed(2));
         
-        // Полностью убираем тени для улучшения производительности
         return particle;
     }
 
