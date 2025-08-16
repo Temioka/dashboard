@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Профиль</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/notifications.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Шрифты -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body data-page="index">
+    <!-- Контейнер для уведомлений -->
+    <div id="notification-container" class="notification-container top-right theme-dark"></div>
+    
+    <!-- Основной контейнер -->
+    <div class="container">
+        <!-- Боковая панель -->
+        <aside class="sidebar">
+            <div class="neon-effect"></div>
+            <div class="neon-line"></div>
+            <!-- Логотип с правильными классами согласно предоставленному CSS -->
+            <div class="logo">
+                <img src="/images/Avtodor.png" alt="Логотип Автодора" loading="lazy" onerror="this.onerror=null; this.src='/images/logo-fallback.png';">
+            </div>
+            
+            <!-- Навигация -->
+            <nav class="nav">
+                <ul>    
+                    <li><a href="/index.html" class="index" data-page="index"><i class="fas fa-home"></i>Главная</a></li>
+                    <li><a href="/Profile.html" class="active" data-page="profile"><i class="fas fa-user"></i>Профиль</a></li>
+                </ul>
+            </nav>
+
+        <div class="time-widget-center">
+            <a title="Точное время в Калуге">
+                <img src="https://www.timeserver.ru/widget/586911/time?theme=dark" alt="Точное время в Калуге" />
+            </a>
+        </div>
+            
+            <!-- Кнопки авторизации -->
+            <button class="login-button" id="loginBtn"><i class="fas fa-lock-open"></i> Войти</button>
+            <button id="logoutBtn" class="login-button" style="display: none;"><i class="fas fa-door-open"></i> Выход</button>
+        </aside>
+        
+        <main class="main-content fade-active" id="mainContent" style="display: none;">
+            <h1 class="department-title">Профиль</h1>
+            
+            <!-- Карточка профиля с ультрасовременной стилизацией -->
+            <div class="card card-glass perspective-card shadow-3d">
+                <div class="card-body">
+                    <!-- Декоративные частицы для анимации фона -->
+                    <span class="particle"></span>
+                    <span class="particle"></span>
+                    <span class="particle"></span>
+                    
+                    <div class="profile-container">
+                        <div class="profile-photo">
+                            <img src="/images/Ava.jpg" alt="Фотография профиля" class="square-photo hover-scale" 
+                                 onerror="this.src='/images/default-avatar.png';">
+                            <!-- Световой эффект на изображении -->
+                            <div class="photo-light-effect"></div>
+                        </div>
+                        
+                        <div class="profile-info">
+                            <h2 class="profile-name"><strong>ФИО:</strong> <span id="full_name" class="text-primary">-</span></h2>
+                            <div class="profile-details">
+                                <p class="profile-detail">
+                                    <i class="fas fa-envelope text-primary mr-2"></i> 
+                                    <strong>Email:</strong> 
+                                    <span id="email">-</span>
+                                </p>
+                                <p class="profile-detail">
+                                    <i class="fas fa-briefcase text-primary mr-2"></i> 
+                                    <strong>Должность:</strong> 
+                                    <span id="department">-</span>
+                            </div>
+                            
+                            <!-- Декоративный элемент с градиентом -->
+                            <div class="profile-decoration"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Модальное окно входа -->
+    <div class="overlay" id="overlay">
+        <div class="modal" id="loginModal" aria-hidden="true" role="dialog" aria-labelledby="modalTitle">
+            <div class="modal-header">
+                <h2 id="modalTitle">Авторизация</h2>
+                <button class="modal-close" id="closeModal" aria-label="Закрыть">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="username">Логин</label>
+                        <input type="text" id="username" name="username" required autocomplete="username" placeholder="Введите логин">
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Пароль</label>
+                        <input type="password" id="password" name="password" required autocomplete="current-password" placeholder="Введите пароль">
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn-login">Войти</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <script src="js/script.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="/js/animated-background.js"></script>
+    <script src="/js/notifications.js"></script>
+    
+    <script>
+        // Инициализация системы уведомлений при загрузке страницы
+        document.addEventListener('DOMContentLoaded', function() {
+            // Проверяем, загружена ли информация профиля
+            setTimeout(() => {
+                if (document.getElementById('full_name').textContent === '-' || 
+                    document.getElementById('full_name').textContent === '') {
+                    toast.info('Для просмотра профиля необходимо авторизоваться', {
+                        duration: 5000,
+                        title: 'Информация'
+                    });
+                }
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

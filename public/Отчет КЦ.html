@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Отчетность контактного центра Автодор">
+    <title>Контактный центр</title>
+    
+    <!-- Шрифты с предзагрузкой -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" as="style">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Стили -->
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/material_red.css">
+    <link rel="stylesheet" href="/css/notifications.css">
+    
+    <!-- Предзагрузка критического CSS фреймворков -->
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"></noscript>
+</head>
+<body data-page="stranicaKC">
+    <div class="container">
+        <aside class="sidebar">
+            <div class="neon-effect"></div>
+            <div class="neon-line"></div>
+            <div class="logo">
+                <img src="/images/Avtodor.png" alt="Логотип Автодора" loading="lazy" onerror="this.onerror=null; this.src='/images/logo-fallback.png';">
+            </div>
+            <nav class="nav" aria-label="Главное меню">
+                <ul>
+                    <li><a href="/index.html" data-page="index"><i class="fas fa-home" aria-hidden="true"></i> Главная</a></li>
+                    <li><a href="/Отчет КЦ.html " class="transition-link active" data-page="index"><i class="fa-solid fa-earth-americas"></i> КЦ Online</a></li>
+                    <li><a href="/Страница отчет (КЦ).html" data-page="profile" aria-current="true"><i class="fas fa-file-alt" aria-hidden="true"></i> Отчетность</a></li>
+                    <li><a href="/Статистика по тематикам (КЦ).html" data-page="settings"><i class="fas fa-chart-line" aria-hidden="true"></i> Статистика по тематикам</a></li>
+                </ul>
+            </nav>
+
+        <div class="time-widget-center">
+            <a title="Точное время в Калуге">
+                <img src="https://www.timeserver.ru/widget/586911/time?theme=dark" alt="Точное время в Калуге" />
+            </a>
+        </div>
+        
+            <button class="login-button" id="loginBtn" aria-label="Войти в систему"><i class="fas fa-lock-open" aria-hidden="true"></i> Войти</button>
+            <button id="logoutBtn" style="display: none;" aria-label="Выйти из системы"><i class="fas fa-door-open" aria-hidden="true"></i> Выход</button>
+        </aside>
+        <main class="main-content fade-active" id="mainContent">
+            <h1 class="kc-online-title">КЦ Online</h1>
+
+            <ul class="breadcrumbs">
+                <li class="breadcrumbs__item">
+                    <a href="/index.html" class="breadcrumbs__link">Главная</a>
+                    <span class="breadcrumbs__separator"></span>
+                </li>
+                <li class="breadcrumbs__item">
+                    <span class="breadcrumbs__current">КЦ Online</span>
+                </li>
+            </ul>
+                <!-- Заголовок страницы -->
+            <div class="page-header">
+                <h1>Статистика контактного центра</h1>
+                <p class="subtitle">Мониторинг показателей работы на <span id="currentDateDisplay"></span></p>
+            </div>
+
+            <!-- Карточки статистики с обновленными метками -->
+                    <div class="cc-stats-grid">
+                        <!-- Карточка - Количество звонков -->
+                        <div class="cc-stat-card" data-stat="calls">
+                            <div class="cc-stat-icon">
+                                <i class="fas fa-phone-volume"></i>
+                            </div>
+                            <div class="cc-stat-content">
+                                <h3 class="cc-stat-title">Количество звонков</h3>
+                                
+                                <div class="cc-stat-values-grid">
+                                    <div class="cc-stat-row">
+                                        <span class="cc-stat-label">Сегодня</span>
+                                        <span class="cc-stat-value" id="totalCallsValue">--</span>
+                                    </div>
+                                    
+                                    <div class="cc-stat-row">
+                                        <span class="cc-stat-label">Вчера</span>
+                                        <span class="cc-stat-value yesterday" id="yesterdayCalls">--</span>
+                                    </div>
+                                    
+                                    <div class="cc-stat-row">
+                                        <span class="cc-stat-label" id="lastWeekDayLabel-calls">Прошлой среды</span>
+                                        <span class="cc-stat-value last-week" id="lastWeekCalls">--</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="cc-stat-changes">
+                                    <p class="cc-changes-header">Процент изменения:</p>
+                                    <div class="cc-changes-grid">
+                                        <div class="cc-change-item">
+                                            <span class="cc-change-label">К вчера</span>
+                                            <span class="cc-stat-change" id="callsChange">--</span>
+                                        </div>
+                                        <div class="cc-change-item">
+                                            <span class="cc-change-label" data-weekday-label="true">С прошлой средой</span>
+                                            <span class="cc-week-trend" id="callsWeekCompare">--</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Карточка - Service Level -->
+                        <div class="cc-stat-card" data-stat="sl">
+                            <div class="cc-stat-icon">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <div class="cc-stat-content">
+                                <h3 class="cc-stat-title">Service Level</h3>
+                                
+                                <div class="cc-stat-values-grid">
+                                    <div class="cc-stat-row">
+                                        <span class="cc-stat-label">Сегодня</span>
+                                        <span class="cc-stat-value" id="slValue">--</span>
+                                    </div>
+                                    
+                                    <div class="cc-stat-row">
+                                        <span class="cc-stat-label">Вчера</span>
+                                        <span class="cc-stat-value yesterday" id="yesterdaySL">--</span>
+                                    </div>
+                                    
+                                    <div class="cc-stat-row">
+                                        <span class="cc-stat-label" id="lastWeekDayLabel-sl">Прошлой среды</span>
+                                        <span class="cc-stat-value last-week" id="lastWeekSL">--</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="cc-stat-changes">
+                                    <p class="cc-changes-header">Процент изменения:</p>
+                                    <div class="cc-changes-grid">
+                                        <div class="cc-change-item">
+                                            <span class="cc-change-label">К вчера</span>
+                                            <span class="cc-stat-change" id="slChange">--</span>
+                                        </div>
+                                        <div class="cc-change-item">
+                                            <span class="cc-change-label" data-weekday-label="true">С прошлой средой</span>
+                                            <span class="cc-week-trend" id="slWeekCompare">--</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Карточка - Среднее время ожидания с пояснением инвертированной логики -->
+                            <div class="cc-stat-card" data-stat="awt">
+                                <div class="cc-stat-icon">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                                <div class="cc-stat-content">
+                                    <h3 class="cc-stat-title">Среднее время ожидания</h3>
+                                    
+                                    <div class="cc-stat-values-grid">
+                                        <div class="cc-stat-row">
+                                            <span class="cc-stat-label">Сегодня</span>
+                                            <span class="cc-stat-value" id="awtValue">--</span>
+                                        </div>
+                                        
+                                        <div class="cc-stat-row">
+                                            <span class="cc-stat-label">Вчера</span>
+                                            <span class="cc-stat-value yesterday" id="yesterdayAWT">--</span>
+                                        </div>
+                                        
+                                        <div class="cc-stat-row">
+                                            <span class="cc-stat-label" id="lastWeekDayLabel-awt">Прошлой среды</span>
+                                            <span class="cc-stat-value last-week" id="lastWeekAWT">--</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="cc-stat-changes">
+                                        <p class="cc-changes-header">Процент изменения</p>
+                                        <div class="cc-changes-grid">
+                                            <div class="cc-change-item">
+                                                <span class="cc-change-label">К вчера</span>
+                                                <span class="cc-stat-change" id="awtChange" title="↓ = Улучшение (меньше времени ожидания), ↑ = Ухудшение">--</span>
+                                            </div>
+                                            <div class="cc-change-item">
+                                                <span class="cc-change-label" data-weekday-label="true">К прошлой среде</span>
+                                                <span class="cc-week-trend" id="awtWeekCompare" title="↓ = Улучшение (меньше времени ожидания), ↑ = Ухудшение">--</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        <!-- НОВАЯ КАРТОЧКА - AHT (Average Handling Time) -->
+                        <div class="cc-stat-card" data-stat="aht">
+                            <div class="cc-stat-icon">
+                                <i class="fas fa-headset"></i>
+                            </div>
+                            <div class="cc-stat-content">
+                                <h3 class="cc-stat-title">Среднее время обработки</h3>
+                                
+                                <div class="cc-stat-values-grid">
+                                    <div class="cc-stat-row">
+                                        <span class="cc-stat-label">Сегодня</span>
+                                        <span class="cc-stat-value" id="ahtValue">--</span>
+                                    </div>
+                                    
+                                    <div class="cc-stat-row">
+                                        <span class="cc-stat-label">Вчера</span>
+                                        <span class="cc-stat-value yesterday" id="yesterdayAHT">--</span>
+                                    </div>
+                                    
+                                    <div class="cc-stat-row">
+                                        <span class="cc-stat-label" id="lastWeekDayLabel-aht">Прошлой среды</span>
+                                        <span class="cc-stat-value last-week" id="lastWeekAHT">--</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="cc-stat-changes">
+                                    <p class="cc-changes-header">Процент изменения</p>
+                                    <div class="cc-changes-grid">
+                                        <div class="cc-change-item">
+                                            <span class="cc-change-label">К вчера</span>
+                                            <span class="cc-stat-change" id="ahtChange" title="↓ = Улучшение (меньше времени обработки), ↑ = Ухудшение">--</span>
+                                        </div>
+                                        <div class="cc-change-item">
+                                            <span class="cc-change-label" data-weekday-label="true">К прошлой среде</span>
+                                            <span class="cc-week-trend" id="ahtWeekCompare" title="↓ = Улучшение (меньше времени обработки), ↑ = Ухудшение">--</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Карточка - Удовлетворенность -->
+                        <div class="cc-stat-card" data-stat="satisfaction">
+                            <div class="cc-stat-icon">
+                                <i class="fas fa-smile"></i>
+                            </div>
+                            <div class="cc-stat-content">
+                                <h3 class="cc-stat-title">Удовлетворенность</h3>
+                                
+                                <div class="cc-stat-values-grid">
+                                    <div class="cc-stat-row">
+                                        <span class="cc-stat-label">Сегодня</span>
+                                        <span class="cc-stat-value" id="satisfactionValue">--</span>
+                                    </div>
+                                    
+                                    <div class="cc-stat-row">
+                                        <span class="cc-stat-label">Вчера</span>
+                                        <span class="cc-stat-value yesterday" id="yesterdaySatisfaction">--</span>
+                                    </div>
+                                    
+                                    <div class="cc-stat-row">
+                                        <span class="cc-stat-label" id="lastWeekDayLabel-satisfaction">Прошлой среды</span>
+                                        <span class="cc-stat-value last-week" id="lastWeekSatisfaction">--</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="cc-stat-changes">
+                                    <p class="cc-changes-header">Процент изменения:</p>
+                                    <div class="cc-changes-grid">
+                                        <div class="cc-change-item">
+                                            <span class="cc-change-label">К вчера</span>
+                                            <span class="cc-stat-change" id="satisfactionChange">--</span>
+                                        </div>
+                                        <div class="cc-change-item">
+                                            <span class="cc-change-label" data-weekday-label="true">С прошлой средой</span>
+                                            <span class="cc-week-trend" id="satisfactionWeekCompare">--</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+            <!-- График и таблица -->
+            <div class="cc-data-container">
+                <!-- Карточка с графиком -->
+                <div class="cc-chart-card">
+                    <div class="cc-card-header">
+                        <h2>Почасовая статистика</h2>
+                        <div class="cc-card-actions">
+                            <div class="cc-last-update" id="lastUpdateTime">Обновлено: --:--</div>
+                            <button id="refreshButton" class="cc-refresh-btn" title="Обновить данные">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="cc-card-body">
+                        <div class="cc-chart-container">
+                            <canvas id="hourlyChart"></canvas>
+                            <div id="chartLoading" class="cc-loading">
+                                <div class="cc-spinner"></div>
+                                <p>Загрузка данных...</p>
+                            </div>
+                            <div id="chartNoData" class="cc-no-data" style="display: none;">
+                                <i class="fas fa-chart-bar"></i>
+                                <p>Нет данных для отображения</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Таблица с данными -->
+                <div class="cc-table-card">
+                    <div class="cc-card-header">
+                        <h2>Детальная статистика</h2>
+                    </div>
+                    <div class="cc-card-body">
+                        <div class="table-container">
+                            <div class="table-responsive">
+                                <table class="data-table" id="detailsTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Час</th>
+                                            <th>Поступило</th>
+                                            <th>SL</th>
+                                            <th>AWT</th>
+                                            <th>AHT</th>
+                                            <th>ICS</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="detailsTableBody">
+                                        <!-- Строки будут добавлены через JavaScript -->
+                                        <tr>
+                                            <td colspan="6" class="cc-loading-cell">
+                                                <div class="cc-spinner"></div>
+                                                <p>Загрузка данных...</p>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <!-- Модальное окно входа -->
+    <div class="overlay" id="overlay">
+        <div class="modal" id="loginModal" aria-hidden="true" role="dialog" aria-labelledby="modalTitle">
+            <div class="modal-header">
+                <h2 id="modalTitle">Авторизация</h2>
+                <button class="modal-close" id="closeModal" aria-label="Закрыть">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="username">Логин</label>
+                        <input type="text" id="username" name="username" required autocomplete="username" placeholder="Введите логин">
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Пароль</label>
+                        <input type="password" id="password" name="password" required autocomplete="current-password" placeholder="Введите пароль">
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn-login">Войти</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Скрипты -->
+    <script src="js/script.js" defer></script>
+    <script src="js/animated-background.js" defer></script>
+    <script src="/js/notifications.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="/js/MainKC.js"></script>
+</body>
+</html>

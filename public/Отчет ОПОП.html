@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Отчетность контактного центра Автодор">
+    <title>ОПОП</title>
+    
+    <!-- Шрифты с предзагрузкой -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" as="style">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Стили -->
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/material_red.css">
+    <link rel="stylesheet" href="/css/notifications.css">
+    
+    <!-- Предзагрузка критического CSS фреймворков -->
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"></noscript>
+</head>
+<body data-page="OtchetOPOP">
+    <div class="container">
+        <aside class="sidebar">
+            <div class="neon-effect"></div>
+            <div class="neon-line"></div>
+            <div class="logo">
+                <img src="/images/Avtodor.png" alt="Логотип Автодора" loading="lazy" onerror="this.onerror=null; this.src='/images/logo-fallback.png';">
+            </div>
+            <nav class="nav" aria-label="Главное меню">
+                <ul>
+                    <li><a href="/index.html" data-page="index"><i class="fas fa-home" aria-hidden="true"></i> Главная</a></li>
+                    <!--<li><a href="/Страница отчет (ОПОП).html" data-page="profile" aria-current="true"><i class="fas fa-file-alt" aria-hidden="true"></i> Отчетность</a></li>
+                    <li><a href="#" data-page="settings"><i class="fas fa-chart-line" aria-hidden="true"></i> Статистика</a></li>-->
+                </ul>
+            </nav>
+
+        <div class="time-widget-center">
+            <a title="Точное время в Калуге">
+                <img src="https://www.timeserver.ru/widget/586911/time?theme=dark" alt="Точное время в Калуге" />
+            </a>
+        </div>
+        
+            <button class="login-button" id="loginBtn" aria-label="Войти в систему"><i class="fas fa-lock-open" aria-hidden="true"></i> Войти</button>
+            <button id="logoutBtn" style="display: none;" aria-label="Выйти из системы"><i class="fas fa-door-open" aria-hidden="true"></i> Выход</button>
+        </aside>
+        <main class="main-content fade-active" id="mainContent" style="display: none;">
+            <h1 class="department-title">Отдел Поддержки обслуживания пользователей</h1>
+
+            <ul class="breadcrumbs">
+                <li class="breadcrumbs__item">
+                    <a href="/index.html" class="breadcrumbs__link">Главная</a>
+                    <span class="breadcrumbs__separator"></span>
+                </li>
+                <li class="breadcrumbs__item">
+                    <span class="breadcrumbs__current">Отдел Поддержки обслуживания пользователей</span>
+                </li>
+            </ul>
+
+            <!-- Загрузчик -->
+            <div class="opop-loader" id="opopLoader">
+                <div class="opop-loader__spinner"></div>
+                <div class="opop-loader__text">Загрузка данных...</div>
+            </div>
+
+            <!-- Контейнер для всего контента -->
+            <div class="opop-container" id="opopContainer" style="display: none;">
+                
+                <!-- Секция с данными за текущий день -->
+                <section class="opop-today-section">
+                    <div class="opop-section-header">
+                        <h2 class="opop-section-title">
+                            Данные за <span id="currentDateDisplay"></span>
+                        </h2>
+                        <div class="opop-last-update">
+                            Последнее обновление: <span id="lastUpdateTime"></span>
+                        </div>
+                    </div>
+
+                    <div class="opop-cards-grid">
+                        <!-- Карточка "Классифицировано" -->
+                        <div class="opop-card opop-card--classified" data-status="classified">
+                            <div class="opop-card__header">
+                                <h3 class="opop-card__title">Классифицировано</h3>
+                                <div class="opop-card__status-indicator opop-card__status-indicator--success"></div>
+                            </div>
+                            <div class="opop-card__content">
+                                <div class="opop-card__value" id="classifiedCount">
+                                    <span class="opop-card__number">-</span>
+                                </div>
+                                <div class="opop-card__trend" id="classifiedTrend">
+                                    <span class="opop-card__trend-text">Обработано сегодня</span>
+                                </div>
+                            </div>
+                            <div class="opop-card__footer">
+                                <div class="opop-card__progress">
+                                    <div class="opop-card__progress-bar opop-card__progress-bar--success" id="classifiedProgress"></div>
+                                </div>
+                                <div class="opop-card__percentage" id="classifiedPercentage">0%</div>
+                            </div>
+                        </div>
+
+                        <!-- Карточка "В работе" -->
+                        <div class="opop-card opop-card--in-progress" data-status="in-progress">
+                            <div class="opop-card__header">
+                                <h3 class="opop-card__title">В работе</h3>
+                                <div class="opop-card__status-indicator opop-card__status-indicator--warning"></div>
+                            </div>
+                            <div class="opop-card__content">
+                                <div class="opop-card__value" id="inProgressCount">
+                                    <span class="opop-card__number">-</span>
+                                </div>
+                                <div class="opop-card__trend" id="inProgressTrend">
+                                    <span class="opop-card__trend-text">В процессе обработки</span>
+                                </div>
+                            </div>
+                            <div class="opop-card__footer">
+                                <div class="opop-card__progress">
+                                    <div class="opop-card__progress-bar opop-card__progress-bar--warning" id="inProgressProgress"></div>
+                                </div>
+                                <div class="opop-card__percentage" id="inProgressPercentage">0%</div>
+                            </div>
+                        </div>
+
+                        <!-- Карточка "Уточнение информации" -->
+                        <div class="opop-card opop-card--clarification" data-status="clarification">
+                            <div class="opop-card__header">
+                                <h3 class="opop-card__title">Уточнение информации</h3>
+                                <div class="opop-card__status-indicator opop-card__status-indicator--info"></div>
+                            </div>
+                            <div class="opop-card__content">
+                                <div class="opop-card__value" id="clarificationCount">
+                                    <span class="opop-card__number">-</span>
+                                </div>
+                                <div class="opop-card__trend" id="clarificationTrend">
+                                    <span class="opop-card__trend-text">Требует уточнения</span>
+                                </div>
+                            </div>
+                            <div class="opop-card__footer">
+                                <div class="opop-card__progress">
+                                    <div class="opop-card__progress-bar opop-card__progress-bar--info" id="clarificationProgress"></div>
+                                </div>
+                                <div class="opop-card__percentage" id="clarificationPercentage">0%</div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Секция с историческими данными -->
+                <section class="opop-history-section">
+                    <div class="opop-section-header">
+                        <h2 class="opop-section-title">
+                            Исторические данные
+                        </h2>
+                    </div>
+
+                    <!-- Переключатели типов данных -->
+                    <div class="opop-tabs">
+                        <button class="opop-tab opop-tab--active" data-tab="general" id="generalTab">
+                            Общая информация
+                        </button>
+                        <button class="opop-tab" data-tab="channels" id="channelsTab">
+                            Источник обращений
+                        </button>
+                        <button class="opop-tab" data-tab="topics" id="topicsTab">
+                            Типы обращений
+                        </button>
+                    </div>
+
+                    <!-- Фильтры периодов -->
+                    <div class="opop-period-filters">
+                        <div class="opop-period-tabs">
+                            <button class="opop-period-tab opop-period-tab--active" data-period="7days">
+                                Последние 7 дней
+                            </button>
+                            <button class="opop-period-tab" data-period="30days">
+                                Последние 30 дней
+                            </button>
+                            <button class="opop-period-tab" data-period="custom">
+                                Произвольный период
+                            </button>
+                        </div>
+
+                        <!-- Кастомный выбор дат -->
+                        <div class="opop-custom-dates" id="customDatesContainer" style="display: none;">
+                            <div class="opop-date-inputs">
+                                <div class="opop-date-input">
+                                    <label for="startDate">От:</label>
+                                    <input type="date" id="startDate" class="opop-date-field">
+                                </div>
+                                <div class="opop-date-input">
+                                    <label for="endDate">До:</label>
+                                    <input type="date" id="endDate" class="opop-date-field">
+                                </div>
+                                <button class="opop-apply-btn" id="applyCustomDates">
+                                    Применить
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Контейнер для графиков/данных -->
+                    <div class="opop-content-container">
+                        <div class="opop-content-loader" id="contentLoader" style="display: none;">
+                            <div class="opop-content-loader__spinner"></div>
+                            <div class="opop-content-loader__text">Загрузка данных...</div>
+                        </div>
+                        
+                        <div class="opop-chart-container" id="chartContainer">
+                            <!-- Здесь будут отображаться графики и данные -->
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+</body>
+    <!-- Модальное окно входа -->
+    <div class="overlay" id="overlay">
+        <div class="modal" id="loginModal" aria-hidden="true" role="dialog" aria-labelledby="modalTitle">
+            <div class="modal-header">
+                <h2 id="modalTitle">Авторизация</h2>
+                <button class="modal-close" id="closeModal" aria-label="Закрыть">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="username">Логин</label>
+                        <input type="text" id="username" name="username" required autocomplete="username" placeholder="Введите логин">
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Пароль</label>
+                        <input type="password" id="password" name="password" required autocomplete="current-password" placeholder="Введите пароль">
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn-login">Войти</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Скрипты -->
+    <script src="js/script.js" defer></script>
+    <script src="js/animated-background.js" defer></script>
+    <script src="/js/notifications.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="/js/opop_online.js" defer></script>

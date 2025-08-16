@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Отчетность контактного центра Автодор">
+    <title>Отчет контактный центр</title>
+    
+    <!-- Шрифты с предзагрузкой -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" as="style">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Стили -->
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/material_red.css">
+    <link rel="stylesheet" href="/css/notifications.css">
+    <link rel="stylesheet" href="/css/report-kc.css">
+
+    
+    <!-- Font Awesome для иконок -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body data-page="otchetKC">
+    <div class="container">
+        <aside class="sidebar">
+            <div class="neon-effect"></div>
+            <div class="neon-line"></div>
+            <div class="logo">
+                <img src="/images/Avtodor.png" alt="Логотип Автодора" loading="lazy" onerror="this.onerror=null; this.src='/images/logo-fallback.png';">
+            </div>
+            <nav class="nav" aria-label="Главное меню">
+                <ul>
+                    <li><a href="/index.html" data-page="index"><i class="fas fa-home" aria-hidden="true"></i> Главная</a></li>
+                    <li><a href="/Отчет КЦ.html" data-page="profile"><i class="fa-solid fa-earth-americas"></i> КЦ Online</a></li>
+                    <li><a href="/Страница отчет (КЦ).html" class="transition-link active" data-page="index"><i class="fas fa-file-alt" aria-hidden="true"></i> Отчетность</a></li>
+                    <li><a href="/Статистика по тематикам (КЦ).html" data-page="settings"><i class="fas fa-chart-line" aria-hidden="true"></i> Статистика по тематикам</a></li>
+                </ul>
+            </nav>
+
+        <div class="time-widget-center">
+            <a title="Точное время в Калуге">
+                <img src="https://www.timeserver.ru/widget/586911/time?theme=dark" alt="Точное время в Калуге" />
+            </a>
+        </div>
+
+            <button class="login-button" id="loginBtn" aria-label="Войти в систему"><i class="fas fa-lock-open" aria-hidden="true"></i> Войти</button>
+            <button id="logoutBtn" style="display: none;" aria-label="Выйти из системы"><i class="fas fa-door-open" aria-hidden="true"></i> Выход</button>
+        </aside>
+        <main class="main-content fade-active" id="mainContent">
+            <h1 class="kc-online-title">Отчетность КЦ</h1>
+
+            <ul class="breadcrumbs">
+                <li class="breadcrumbs__item">
+                    <a href="/index.html" class="breadcrumbs__link">Главная</a>
+                    <span class="breadcrumbs__separator"></span>
+                </li>
+                <li class="breadcrumbs__item">
+                    <a href="/Отчет КЦ.html" class="breadcrumbs__link">Контактный центр</a>
+                    <span class="breadcrumbs__separator"></span>
+                </li>
+                <li class="breadcrumbs__item">
+                    <span class="breadcrumbs__current">Отчетность</span>
+                </li>
+            </ul>
+
+            <!-- Переключатели типов отчетов -->
+            <div class="report-switches">
+               <div class="toggle-switch-container">
+                    <div class="toggle-switch" id="reportTypeSwitch">
+                        <button class="toggle-option active" data-value="call">
+                            <i class="fas fa-phone"></i> Входящие звонки
+                        </button>
+
+                       <!--<button class="toggle-option" data-value="omni">
+                            <i class="fas fa-comments"></i> Омниканальный чат
+                        </button>-->
+
+                        
+                    </div>
+                </div>
+                
+                <div class="toggle-switch-container">
+                    <div id="dataTypeSwitch" class="toggle-switch">
+                        <button class="toggle-option active" data-value="summary">
+                            <i class="fas fa-chart-pie"></i> Суммарные данные
+                        </button>
+                        <button class="toggle-option" data-value="detailed">
+                            <i class="fas fa-list"></i> Детальные данные
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Блок отчетов по звонкам -->
+            <div id="call-block" class="report-block active">
+                <div class="report-card">
+                    <div class="report-card-header">
+                        <h2>Параметры отчета</h2>
+                    </div>
+                    
+                    <div class="report-card-body">
+                        <!-- Тип периода -->
+                        <div class="period-selector">
+                            <div class="period-tabs">
+                                <button class="period-tab" data-period="month">
+                                    <i class="far fa-calendar-alt"></i> По месяцам
+                                </button>
+                                <button class="period-tab" data-period="hour">
+                                    <i class="far fa-clock"></i> По часам
+                                </button>
+                                <button class="period-tab" data-period="custom">
+                                    <i class="far fa-calendar-week"></i> Произвольный период
+                                </button>
+                            </div>
+                            
+                            <!-- Контейнеры для разных типов периодов -->
+                                <div class="period-containers">
+                                    <!-- Месячный селектор -->
+                                    <div id="month-selector" class="period-container">
+                                        <div class="input-group-header">
+                                            <h3>Выберите месяцы для отчета</h3>
+                                        </div>
+                                        
+                                        <div id="months-rows-container" class="months-rows-container">
+                                            <!-- Сюда JS добавит строки с выбором месяца и года -->
+                                        </div>
+                                        
+                                        <div class="add-btn-row">
+                                            <button type="button" id="add-month-btn" class="add-button big-add-btn">
+                                                <span class="add-btn-icon">+</span>
+                                                <span class="add-btn-text">Добавить<br>месяц</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                            <!-- Часовой селектор -->
+                            <div id="hour-selector" class="period-container">
+                                <div class="date-range-container">
+                                    <div class="date-field">
+                                        <label for="start-datetime">Начало периода</label>
+                                        <div class="input-with-icon">
+                                            <i class="far fa-calendar-alt"></i>
+                                            <input type="datetime-local" id="start-datetime" class="form-input">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="date-field">
+                                        <label for="end-datetime">Конец периода</label>
+                                        <div class="input-with-icon">
+                                            <i class="far fa-calendar-alt"></i>
+                                            <input type="datetime-local" id="end-datetime" class="form-input">
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Сравнение периодов -->
+                                <div class="comparison-section">
+                                    <div class="comparison-header">
+                                        <h3>Сравнение с другими периодами</h3>
+                                    </div>
+                                    
+                                    <div id="date-comparison-container" class="comparison-periods-container">
+                                        <!-- JS добавит здесь элементы сравнения -->
+                                    </div>
+                                    
+                                    <div class="add-btn-row">
+                                        <button type="button" id="add-date-btn" class="add-button big-add-btn">
+                                            <span class="add-btn-icon">+</span>
+                                            <span class="add-btn-text">Добавить<br>период</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                                
+                                <!-- Произвольный период -->
+                                <div id="custom-period" class="period-container active">
+                                    <div class="date-range-selector">
+                                        <div class="input-group">
+                                            <label>Дата начала</label>
+                                            <div class="input-with-icon">
+                                                <i class="far fa-calendar-alt"></i>
+                                                <input type="date" id="startDate" class="form-input">
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="input-group">
+                                            <label>Дата окончания</label>
+                                            <div class="input-with-icon">
+                                                <i class="far fa-calendar-alt"></i>
+                                                <input type="date" id="endDate" class="form-input">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Панель действий -->
+                        <div class="action-panel">
+                            <button type="button" id="submitBtn" class="primary-button">
+                                <i class="fas fa-search"></i> Вывести данные
+                            </button>
+                            
+                            <button type="button" id="toggleChartBtn" class="action-button">
+                                <i class="fas fa-chart-bar"></i> График
+                            </button>
+                            
+                            <button type="button" id="exportExcelBtn" class="action-button">
+                                <i class="fas fa-file-excel"></i> Экспорт
+                            </button>
+                            
+                            <button type="button" id="clearButton" class="secondary-button">
+                                <i class="fas fa-eraser"></i> Очистить
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Карточка результатов -->
+                <div class="report-card results-card">
+                    <div class="report-card-header">
+                        <h2>Результаты</h2>
+                        <div class="card-actions">
+                        </div>
+                    </div>
+                    
+                    <div class="report-card-body">
+                        <!-- Контейнер для графика -->
+                        <div id="chart-view-container" class="chart-container">
+                            <div class="chart-header">
+                                <h3>Динамика показателей</h3>
+                                <button type="button" id="closeChartBtn" class="close-chart-btn">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                            <div class="chart-wrapper">
+                                <canvas id="combinedChart"></canvas>
+                            </div>
+                        </div>
+                        
+                        <!-- Контейнер таблиц сравнения -->
+                        <div id="comparison-tables" class="comparison-tables-container">
+                            <!-- Динамически созданные таблицы будут добавлены здесь -->
+                        </div>
+                        
+                        <!-- Основная таблица данных -->
+                        <div class="table-responsive">
+                            <table id="data-table" class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th class="sortable" data-sort="date">Период</th>
+                                        <th class="sortable" data-sort="calls">Количество вызовов</th>
+                                        <th class="sortable" data-sort="servicelevel">Service Level (%)</th>
+                                        <th class="sortable" data-sort="satisfaction">Удовлетворенность</th>
+                                        <th class="sortable" data-sort="waittime">Время ожидания (сек)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="no-data-row">
+                                        <td colspan="5">Выберите параметры и нажмите "Вывести данные"</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Блок отчетов по чатам -->
+            <div id="omni-block" class="report-block">
+                <div class="report-card">
+                    <div class="report-card-header">
+                        <h2>Параметры отчета по чатам</h2>
+                    </div>
+                    
+                    <div class="report-card-body">
+                        <form id="omniForm">
+                            <!-- Тип периода -->
+                            <div class="period-selector">
+                                <div class="period-tabs small" id="omniPeriodType">
+                                    <button class="period-tab active" data-period="month" data-target="omni">
+                                        <i class="far fa-calendar-alt"></i> По месяцам
+                                    </button>
+                                    <button class="period-tab" data-period="custom" data-target="omni">
+                                        <i class="fas fa-calendar-week"></i> Произвольный период
+                                    </button>
+                                </div>
+                                
+                                <!-- Контейнеры для различных типов периодов -->
+                                <div class="period-containers">
+                                    <!-- Месячный селектор для омниканального чата -->
+                                    <div id="omni-month-selector" class="period-container active">
+                                        <div class="input-group-header">
+                                            <h3>Выберите месяцы для отчета</h3>
+                                            <button type="button" id="omni-add-month-btn" class="action-button add-button">
+                                                <i class="fas fa-plus"></i> Добавить месяц
+                                            </button>
+                                        </div>
+                                        
+                                        <div id="omni-months-rows-container" class="months-rows-container">
+                                            <!-- Строка с выбором месяца и года -->
+                                            <div class="month-row">
+                                                <div class="month-select">
+                                                    <select name="month" class="omni-month-select" required>
+                                                        <option value="1">Январь</option>
+                                                        <option value="2">Февраль</option>
+                                                        <option value="3">Март</option>
+                                                        <option value="4">Апрель</option>
+                                                        <option value="5">Май</option>
+                                                        <option value="6" selected>Июнь</option>
+                                                        <option value="7">Июль</option>
+                                                        <option value="8">Август</option>
+                                                        <option value="9">Сентябрь</option>
+                                                        <option value="10">Октябрь</option>
+                                                        <option value="11">Ноябрь</option>
+                                                        <option value="12">Декабрь</option>
+                                                    </select>
+                                                </div>
+                                                <div class="year-select">
+                                                    <select name="year" class="omni-year-select" required>
+                                                        <option value="2023">2023</option>
+                                                        <option value="2024">2024</option>
+                                                        <option value="2025" selected>2025</option>
+                                                    </select>
+                                                </div>
+                                                <button type="button" class="remove-month-btn action-button">
+                                                    <i class="fas fa-times"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Произвольный период для омниканального чата -->
+                                    <div id="omni-custom-period" class="period-container">
+                                        <div class="date-range-selector" id="dateRangeContainer">
+                                            <div class="input-group">
+                                                <label for="omni-startDate">Дата начала</label>
+                                                <div class="input-with-icon">
+                                                    <i class="far fa-calendar-alt"></i>
+                                                    <input type="date" id="omni-startDate" class="form-input">
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="input-group">
+                                                <label for="omni-endDate">Дата окончания</label>
+                                                <div class="input-with-icon">
+                                                    <i class="far fa-calendar-alt"></i>
+                                                    <input type="date" id="omni-endDate" class="form-input">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Кнопки управления -->
+                            <div class="action-panel">
+                                <button type="button" id="omni-submit-btn" class="primary-button stk-show-btn">
+                                    <i class="fas fa-search"></i> Показать чаты
+                                </button>
+                                <button type="button" id="omni-export-btn" class="action-button stk-export-btn">
+                                    <i class="fas fa-file-excel"></i> Экспорт
+                                </button>
+                                <button type="button" id="omni-clear-btn" class="secondary-button stk-clear-btn">
+                                    <i class="fas fa-eraser"></i> Очистить
+                                </button>
+                            </div>
+
+                            <!-- Скрытые поля для дат -->
+                            <input type="hidden" id="omni-start-date" name="omni-start-date">
+                            <input type="hidden" id="omni-end-date" name="omni-end-date">
+                        </form>
+                    </div>
+                </div>
+                
+                <!-- Результаты по чатам - карточка результатов -->
+                <div class="report-card results-card" id="omni-results-card">
+                    <div class="report-card-header">
+                        <h2>Результаты</h2>
+                    </div>
+                    
+                    <div class="report-card-body">
+                        <!-- ПЕРВАЯ ТАБЛИЦА: Обращения в чат -->
+                        <div class="avtodor-table-card">
+                            <h3 class="avtodor-table-title">Обращения в чат</h3>
+                            <div class="avtodor-table-responsive">
+                                <table id="omni-table-main" class="avtodor-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Дата</th>
+                                            <th>Обращения в чат</th>
+                                            <th>Обработано ботом</th>
+                                            <th>Обработано оператором</th>
+                                            <th>% бот</th>
+                                            <th>% оператор</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr class="empty-row">
+                                            <td colspan="6">Выберите параметры и нажмите "Показать чаты"</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <!-- ВТОРАЯ ТАБЛИЦА: Каналы поступления (расположена НИЖЕ первой) -->
+                        <div class="avtodor-table-card">
+                            <h3 class="avtodor-table-title">Каналы поступления</h3>
+                            <div class="avtodor-table-responsive">
+                                <table id="omni-table-channels" class="avtodor-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Дата</th>
+                                            <th>Мобильное приложение</th>
+                                            <th>WhatsApp</th>
+                                            <th>Telegram</th>
+                                            <th>ВКонтакте</th>
+                                            <th>Сайт</th>
+                                            <th>Viber</th>
+                                            <th>OK</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr class="empty-row">
+                                            <td colspan="8">Выберите параметры и нажмите "Показать чаты"</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Модальное окно входа -->
+    <div class="overlay" id="overlay">
+        <div class="modal" id="loginModal" aria-hidden="true" role="dialog" aria-labelledby="modalTitle">
+            <div class="modal-header">
+                <h2 id="modalTitle">Авторизация</h2>
+                <button class="modal-close" id="closeModal" aria-label="Закрыть">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="username">Логин</label>
+                        <input type="text" id="username" name="username" required autocomplete="username" placeholder="Введите логин">
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Пароль</label>
+                        <input type="password" id="password" name="password" required autocomplete="current-password" placeholder="Введите пароль">
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn-login">Войти</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Скрипты -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.0/dist/xlsx.full.min.js"></script>
+    <script src="js/script.js" defer></script>
+    <script src="js/animated-background.js" defer></script>
+    <script src="/js/notifications.js" defer></script>
+    <script src="/js/OtchetKC.js" defer></script>
+    <script src="/js/chati.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Отчетность контактного центра Автодор">
+    <title>Статистика по тематикам КЦ</title>
+    <!-- Шрифты и стили -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" as="style">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/notifications.css">
+    <link rel="stylesheet" href="/css/flatpickr-custom.css">
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"></noscript>
+    
+    <!-- Библиотеки для таблиц и графиков -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css">
+</head>
+<body data-page="StatTemKC">
+    <div class="container">
+        <aside class="sidebar">
+            <div class="neon-effect"></div>
+            <div class="neon-line"></div>
+            <div class="logo">
+                <img src="/images/Avtodor.png" alt="Логотип Автодора" loading="lazy" onerror="this.onerror=null; this.src='/images/logo-fallback.png';">
+            </div>
+            <nav class="nav" aria-label="Главное меню">
+                <ul>
+                    <li><a href="/index.html" data-page="index"><i class="fas fa-home" aria-hidden="true"></i> Главная</a></li>
+                    <li><a href="/Отчет КЦ.html" data-page="profile"><i class="fa-solid fa-earth-americas"></i> КЦ Online</a></li>
+                    <li><a href="/Страница отчет (КЦ).html"><i class="fas fa-file-alt" aria-hidden="true"></i> Отчетность</a></li>
+                    <li><a href="/Статистика по тематикам (КЦ).html" data-page="settings" class="transition-link active" data-page="index"><i class="fas fa-chart-line" aria-hidden="true"></i> Статистика по тематикам</a></li>
+                </ul>
+            </nav>
+
+        <div class="time-widget-center">
+            <a title="Точное время в Калуге">
+                <img src="https://www.timeserver.ru/widget/586911/time?theme=dark" alt="Точное время в Калуге" />
+            </a>
+        </div>
+
+            <button class="login-button" id="loginBtn" aria-label="Войти в систему"><i class="fas fa-lock-open" aria-hidden="true"></i> Войти</button>
+            <button id="logoutBtn" style="display: none;" aria-label="Выйти из системы"><i class="fas fa-door-open" aria-hidden="true"></i> Выход</button>
+        </aside>
+        <main class="main-content fade-active" id="mainContent">
+            <h1 class="kc-online-title">Статистика по тематикам КЦ</h1>
+            <ul class="breadcrumbs">
+                <li class="breadcrumbs__item">
+                    <a href="/index.html" class="breadcrumbs__link">Главная</a>
+                    <span class="breadcrumbs__separator"></span>
+                </li>
+                <li class="breadcrumbs__item">
+                    <a href="/Отчет КЦ.html" class="breadcrumbs__link">Контактный центр</a>
+                    <span class="breadcrumbs__separator"></span>
+                </li>
+                <li class="breadcrumbs__item">
+                    <span class="breadcrumbs__current">Статистика по тематикам</span>
+                </li>
+            </ul>
+
+            <!-- Переключатель "Звонки" / "Чаты" (поменяны местами) -->
+            <div class="stk-content-box">
+                <div class="stk-switcher">
+                    <button class="stk-btn-switch active" data-type="calls">
+                        <i class="fas fa-phone-alt"></i> Звонки
+                    </button>
+                    <button class="stk-btn-switch" data-type="chats">
+                        <i class="fas fa-comments"></i> Чаты
+                    </button>
+                </div>
+
+                <!-- Блок фильтров -->
+                <div class="stk-filter-block">
+                    <div class="stk-filter-header">
+                        <i class="fas fa-filter"></i> Фильтры
+                    </div>
+
+                    <div class="stk-filter-options">
+                        <button class="stk-filter-btn active" data-period="month">По месяцам</button>
+                        <button class="stk-filter-btn stk-hour-filter" data-period="hour">По часам<button!>
+                        <button class="stk-filter-btn" data-period="custom">Произвольный период</button>
+                    </div>
+
+                    <!-- Контейнеры для выбора периодов -->
+                    <div id="stk-month-container" class="stk-period-selector"></div>
+                    <div id="stk-day-container" class="stk-period-selector" style="display:none;"></div>
+                    <div id="stk-hour-container" class="stk-period-selector" style="display:none;"></div>
+                    <div id="stk-custom-container" class="stk-period-selector" style="display:none;">
+                        <div class="stk-date-selector">
+                            <div class="stk-selector-wrapper">
+                                <label for="stk-start-date-input" class="stk-selector-label">Начало:</label>
+                                <input type="text" class="stk-date-input" id="stk-start-date-input" readonly>
+                            </div>
+                        </div>
+                        <div class="stk-date-selector">
+                            <div class="stk-selector-wrapper">
+                                <label for="stk-end-date-input" class="stk-selector-label">Конец:</label>
+                                <input type="text" class="stk-date-input" id="stk-end-date-input" readonly>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Кнопки действий -->
+                    <div class="stk-actions">
+                        <button id="stk-show-btn" class="stk-action-btn stk-show-btn">
+                            <i class="fas fa-sync-alt"></i> Вывести данные
+                        </button>
+                        <button id="stk-export-btn" class="stk-action-btn stk-export-btn">
+                            <i class="fas fa-file-excel"></i> Экспорт в Excel
+                        </button>
+                        <button id="stk-clear-btn" class="stk-action-btn stk-clear-btn">
+                            <i class="fas fa-eraser"></i> Очистить
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Переключатель таблица/график + фильтры топ -->
+                <div class="stk-view-control">
+                    <div class="stk-view-switcher">
+                        <button class="stk-view-btn active" data-view="table">
+                            <i class="fas fa-table"></i> Таблица
+                        </button>
+                        <button class="stk-view-btn" data-view="chart">
+                            <i class="fas fa-chart-pie"></i> График
+                        </button>
+                    </div>
+
+                    <!-- Фильтр Топ N -->
+                    <div class="stk-top-filter">
+                        <div class="stk-filter-group">
+                            <span class="stk-filter-label">Показать:</span>
+                            <div class="stk-top-buttons-container">
+                                <button class="stk-top-btn active" data-top="all">Все</button>
+                                <button class="stk-top-btn" data-top="top10">Топ 10</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Типы графиков -->
+                    <div class="stk-chart-types" style="display:none;">
+                        <button class="stk-chart-btn active" data-chart="doughnut">
+                            <i class="fas fa-circle-notch"></i> Кольцевой
+                        </button>
+                        <button class="stk-chart-btn" data-chart="bar">
+                            <i class="fas fa-chart-bar"></i> Столбчатый
+                        </button>
+                        <button class="stk-chart-btn" data-chart="line">
+                            <i class="fas fa-chart-line"></i> Линейный
+                        </button>
+                        <button class="stk-chart-btn" data-chart="pie">
+                            <i class="fas fa-chart-pie"></i> Круговой
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Блок данных (таблица или график) -->
+                <div class="stk-data-block">
+                    <!-- Заголовок данных -->
+                    <div class="stk-data-header">
+                        <div class="stk-data-title">
+                            <i class="fas fa-table" id="stk-title-icon"></i>
+                            <span>Данные по тематикам: <span id="stk-type-label">Звонки</span> | <span id="stk-period-label">По месяцам</span></span>
+                        </div>
+                        <div class="stk-control-buttons">
+                            <button id="stk-refresh-btn" class="stk-ctrl-btn" title="Обновить данные">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                            <button id="stk-fullscreen-btn" class="stk-ctrl-btn" title="Полный экран">
+                                <i class="fas fa-expand"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Индикатор загрузки внутри таблицы -->
+                    <div id="stk-table-loader" class="stk-table-loader" style="display:none;">
+                        <div class="stk-loader-spinner"></div>
+                        <div class="stk-loader-text">Загрузка данных...</div>
+                    </div>
+
+                    <!-- Контейнер для таблицы -->
+                    <div id="stk-table-container" class="stk-table-wrapper">
+                        <table class="stk-data-table">
+                            <thead>
+                                <tr id="stk-table-header">
+                                    <th class="stk-th-period">Месяц</th>
+                                    <th class="stk-th-topic">Тематика</th>
+                                    <th class="stk-th-count">Кол-во</th>
+                                    <th class="stk-th-percent">Доля % от всех</th>
+                                </tr>
+                            </thead>
+                            <tbody id="stk-table-body">
+                                <!-- Заполняется скриптом -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Сообщение при отсутствии данных -->
+                    <div class="stk-empty-state" style="display:none;">
+                        <div class="stk-empty-icon">
+                            <i class="fas fa-search"></i>
+                        </div>
+                        <p class="stk-empty-text">Нет данных для выбранного периода</p>
+                        <button id="stk-load-empty-btn" class="stk-empty-btn">
+                            Загрузить данные
+                        </button>
+                    </div>
+
+                    <!-- Контейнер для графика -->
+                    <div id="stk-chart-container" class="stk-chart-wrapper" style="display:none;">
+                        <canvas id="stk-chart"></canvas>
+                    </div>
+
+                    <!-- Легенда графика -->
+                    <div id="stk-chart-legend" class="stk-chart-legend" style="display:none;">
+                        <!-- Заполняется скриптом -->
+                    </div>
+
+                    <!-- Информация о записях -->
+                    <div class="stk-data-footer">
+                        <div class="stk-record-info">
+                            Всего записей: <strong id="stk-total-records">0</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+     <!-- Модальное окно входа -->
+     <div class="overlay" id="overlay">
+        <div class="modal" id="loginModal" aria-hidden="true" role="dialog" aria-labelledby="modalTitle">
+            <div class="modal-header">
+                <h2 id="modalTitle">Авторизация</h2>
+                <button class="modal-close" id="closeModal" aria-label="Закрыть">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="username">Логин</label>
+                        <input type="text" id="username" name="username" required autocomplete="username" placeholder="Введите логин">
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Пароль</label>
+                        <input type="password" id="password" name="password" required autocomplete="current-password" placeholder="Введите пароль">
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn-login">Войти</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Уведомления -->
+    <div class="notifications-container" id="notificationsContainer"></div>
+    
+    <!-- Скрипты -->
+   
+    <!-- Основные скрипты сайта -->
+    <script src="js/script.js" defer></script>
+    <script src="js/scrol.js"></script>
+    <script src="js/animated-background.js" defer></script>
+    <script src="/js/notifications.js" defer></script>
+    <script src="/js/StatTemKC.js" defer></script>
+</body>
+</html>

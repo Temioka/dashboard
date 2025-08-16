@@ -1,0 +1,60 @@
+{
+  "name": "avtodor-api",
+  "version": "2.1.0",
+  "description": "API для системы обработки и визуализации данных верификации поездок Автодор",
+  "main": "base.js",
+  "scripts": {
+    "start": "node base.js",
+    "dev": "nodemon base.js",
+    "generate-ssl": "node generate-ssl.js",
+    "check": "node check-environment.js"
+  },
+  "keywords": [
+    "avtodor",
+    "api",
+    "verification",
+    "reports"
+  ],
+  "author": "kondakov_av",
+  "license": "ISC",
+  "dependencies": {
+    "acme-client": "^5.4.0",
+    "bcrypt": "^5.1.1",
+    "bcryptjs": "^3.0.2",
+    "compression": "^1.8.0",
+    "connect-pg-simple": "^10.0.0",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dateformat": "^5.0.3",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "express-rate-limit": "^6.11.2",
+    "express-session": "^1.18.1",
+    "express-validator": "^7.2.1",
+    "fs": "^0.0.1-security",
+    "helmet": "^8.1.0",
+    "http": "^0.0.1-security",
+    "https": "^1.0.0",
+    "jsonwebtoken": "^9.0.2",
+    "morgan": "^1.10.0",
+    "multer": "^1.4.5-lts.2",
+    "node-adodb": "^5.0.3",
+    "node-cron": "^3.0.3",
+    "openssl": "^2.0.0",
+    "path": "^0.12.7",
+    "pg": "^8.14.1",
+    "redis": "^4.7.0",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1",
+    "systeminformation": "^5.25.11",
+    "winston": "^3.17.0",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.9"
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=7.0.0"
+  }
+}

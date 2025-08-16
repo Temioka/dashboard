@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Отчетность контактного центра Автодор">
+    <title>УВДЗ</title>
+    
+    <!-- Шрифты с предзагрузкой -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" as="style">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Стили -->
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/material_red.css">
+    <link rel="stylesheet" href="/css/notifications.css">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Предзагрузка критического CSS фреймворков -->
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"></noscript>
+</head>
+<body data-page="stranicaKC">
+    <div class="container">
+        <aside class="sidebar">
+            <div class="neon-effect"></div>
+            <div class="neon-line"></div>
+            <div class="logo">
+                <img src="/images/Avtodor.png" alt="Логотип Автодора" loading="lazy" onerror="this.onerror=null; this.src='/images/logo-fallback.png';">
+            </div>
+            <nav class="nav" aria-label="Главное меню">
+                <ul>
+                    <li><a href="/index.html" data-page="index"><i class="fas fa-home" aria-hidden="true"></i> Главная</a></li>
+                    <!--<li><a href="/Страница отчет (УВДЗ).html" data-page="profile" aria-current="page"><i class="fas fa-file-alt" aria-hidden="true"></i> Отчетность</a></li>
+                    <li><a href="#" data-page="settings"><i class="fas fa-chart-line" aria-hidden="true"></i> Статистика</a></li>-->
+                </ul>
+            </nav>
+
+        <div class="time-widget-center">
+            <a title="Точное время в Калуге">
+                <img src="https://www.timeserver.ru/widget/586911/time?theme=dark" alt="Точное время в Калуге" />
+            </a>
+        </div>
+
+            <button class="login-button" id="loginBtn" aria-label="Войти в систему"><i class="fas fa-lock-open" aria-hidden="true"></i> Войти</button>
+            <button id="logoutBtn" style="display: none;" aria-label="Выйти из системы"><i class="fas fa-door-open" aria-hidden="true"></i> Выход</button>
+        </aside>
+        
+        <main class="main-content fade-active" id="mainContent">
+            <!-- Заголовок департамента -->
+            <div class="uvdz-header">
+                <div class="uvdz-header-info">
+                    <div class="uvdz-header-icon">
+                        <i class="fas fa-file-invoice-dollar"></i>
+                    </div>
+                    <div class="uvdz-header-text">
+                        <h1 style="color: white;">Управление по взысканию дебиторской задолженности</h1>
+                        <p>Мониторинг и анализ дебиторской задолженности по платным дорогам</p>
+                    </div>
+                </div>
+                <div class="uvdz-current-date">
+                    <span class="uvdz-date-label">ТЕКУЩАЯ ДАТА</span>
+                    <span class="uvdz-date-value" id="uvdzCurrentDate">вторник, 2 июля 2025 г.</span>
+                </div>
+            </div>
+
+            <!-- Хлебные крошки -->
+            <ul class="breadcrumbs">
+                <li class="breadcrumbs__item">
+                    <a href="/index.html" class="breadcrumbs__link">Главная</a>
+                    <span class="breadcrumbs__separator"></span>
+                </li>
+                <li class="breadcrumbs__item">
+                    <span class="breadcrumbs__current">Управление по взысканию дебиторской задолженности</span>
+                </li>
+            </ul>
+
+            <!-- Детальная аналитика -->
+            <div class="uvdz-analytics-section">
+                <h2 class="uvdz-analytics-title">Детальная аналитика</h2>
+                
+                <div class="uvdz-tabs-horizontal">
+                    <button class="uvdz-tab uvdz-tab-active" data-section="general" aria-selected="true">
+                        <i class="fas fa-chart-pie"></i>
+                        <span>Общая информация</span>
+                    </button>
+
+                    <button class="uvdz-tab" data-section="pre-court" aria-selected="false">
+                        <i class="fas fa-file-alt"></i>
+                        <span>Досудебная работа</span>
+                    </button>
+
+                    <button class="uvdz-tab" data-section="court" aria-selected="false">
+                        <i class="fas fa-gavel"></i>
+                        <span>Судебная работа</span>
+                    </button>
+                    
+                    <button class="uvdz-tab" data-section="banks" aria-selected="false">
+                        <i class="fas fa-university"></i>
+                        <span>Работа с банками</span>
+                    </button>
+                    
+                    <button class="uvdz-tab" data-section="categories" aria-selected="false">
+                        <i class="fas fa-list-alt"></i>
+                        <span>Категории ЛС</span>
+                    </button>
+
+                    <button class="uvdz-tab" data-section="personification" aria-selected="false">
+                        <i class="fas fa-user-check"></i>
+                        <span>Персонификация</span>
+                    </button>
+
+                    <button class="uvdz-tab" data-section="roads" aria-selected="false">
+                        <i class="fas fa-road"></i>
+                        <span>Участки дорог</span>
+                    </button>
+
+                    <button class="uvdz-tab" data-section="monthly" aria-selected="false">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span>Проезды с минусовым балансом</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Основные метрики (скрыты по умолчанию) -->
+            <div class="uvdz-metrics-grid" id="uvdzMetricsGrid" style="display: none;">
+                <div class="uvdz-loading">Загрузка метрик...</div>
+            </div>
+
+            <!-- Графики и диаграммы -->
+            <div class="uvdz-charts-section" id="uvdzChartsSection">
+                <div class="uvdz-loading">Загрузка графиков...</div>
+            </div>
+
+            <!-- Таблицы с данными -->
+            <div class="uvdz-tables-section" id="uvdzTablesSection">
+                <div class="uvdz-loading">Загрузка таблиц...</div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Модальное окно входа -->
+    <div class="overlay" id="overlay">
+        <div class="modal" id="loginModal" aria-hidden="true" role="dialog" aria-labelledby="modalTitle">
+            <div class="modal-header">
+                <h2 id="modalTitle">Авторизация</h2>
+                <button class="modal-close" id="closeModal" aria-label="Закрыть">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="username">Логин</label>
+                        <input type="text" id="username" name="username" required autocomplete="username" placeholder="Введите логин">
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Пароль</label>
+                        <input type="password" id="password" name="password" required autocomplete="current-password" placeholder="Введите пароль">
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn-login">Войти</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Скрипты -->
+    <script src="js/script.js" defer></script>
+    <script src="js/debet_zad.js" defer></script>
+    <script src="js/animated-background.js" defer></script>
+    <script src="/js/notifications.js"></script>
+</body>
+</html>
