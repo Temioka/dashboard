@@ -1089,73 +1089,269 @@ img {
 
 /*==============================================
     РАЗМЕТКА И КОНТЕЙНЕРЫ
+    Enhanced Layout System v2.0
 ==============================================*/
-/* Исправление проблемы с прокруткой в main-content */
 
-/* Исправленные стили для контейнера */
+/* ===== СОВРЕМЕННАЯ СИСТЕМА КОНТЕЙНЕРОВ ===== */
+/* Главный контейнер приложения */
 .container {
+    display: grid;
+    grid-template-columns: var(--sidebar-width) 1fr;
+    grid-template-rows: 1fr;
+    min-height: 100vh;
+    position: relative;
+    overflow: hidden;
+    transition: grid-template-columns var(--transition-normal);
+}
+
+/* Альтернативный flexbox контейнер для обратной совместимости */
+.container-flex {
     display: flex;
     min-height: 100vh;
     position: relative;
     overflow-x: hidden;
-    overflow-y: hidden; /* Добавлено: предотвращает вертикальный скролл на контейнере */
+    overflow-y: hidden;
 }
 
-/* Исправленные стили для main-content */
+/* Контейнер для мобильных устройств */
+.container-mobile {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    position: relative;
+    overflow: hidden;
+}
+
+/* ===== УЛУЧШЕННЫЙ MAIN CONTENT ===== */
 .main-content {
-    width: 100%;
-    max-width: 100%;
+    grid-column: 2;
     position: relative;
-    flex: 1;
-    min-width: 0;
-    padding: var(--space-6);
+    padding: var(--space-6) var(--space-8);
     margin-left: var(--space-6);
-    background-color: var(--white);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-lg);
-    transition: all var(--transition-normal);
-    animation: fadeIn var(--transition-slow) forwards;
+    background: var(--gradient-glass);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: var(--radius-2xl);
+    box-shadow: var(--shadow-2xl);
+    transition: all var(--transition-smooth);
+    animation: slideInUp var(--duration-slow) var(--ease-out) forwards;
     opacity: 0;
-    transform-origin: center;
-    position: relative;
-    z-index: var(--z-low);
+    transform: translateY(20px);
+    z-index: var(--z-10);
     
-    /* Ключевые исправления */
-    height: auto;           /* Высота по содержимому */
-    min-height: 75vh;       /* Минимальная высота остается */
-    max-height: 100vh;      /* Максимальная высота не больше высоты экрана */
-    overflow-y: auto;       /* Скролл появляется только при необходимости */
-    overflow-x: hidden;     /* Предотвращает горизонтальную прокрутку */
+    /* Современная система скроллинга */
+    height: calc(100vh - var(--space-12));
+    max-height: calc(100vh - var(--space-12));
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior: contain;
+    scroll-behavior: smooth;
     
-    /* Предотвращение нежелательного скролла */
-    margin-bottom: 0;       /* Убираем нижний отступ */
-    display: flex;          /* Используем flexbox */
-    flex-direction: column; /* Колоночное направление */
+    /* Улучшенная прокрутка для веб-кита */
+    scrollbar-width: thin;
+    scrollbar-color: var(--primary-200) transparent;
 }
 
+/* Стилизация скроллбара для современных браузеров */
+.main-content::-webkit-scrollbar {
+    width: 8px;
+}
+
+.main-content::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: var(--radius-full);
+}
+
+.main-content::-webkit-scrollbar-thumb {
+    background: var(--primary-200);
+    border-radius: var(--radius-full);
+    transition: background var(--transition-fast);
+}
+
+.main-content::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-400);
+}
+
+/* Варианты main-content */
+.main-content--full {
+    grid-column: 1 / -1;
+    margin-left: 0;
+    border-radius: 0;
+}
+
+.main-content--centered {
+    max-width: var(--max-content-width);
+    margin: 0 auto;
+    padding: var(--space-8) var(--space-6);
+}
+
+/* ===== СИСТЕМА ОБЁРТОК КОНТЕНТА ===== */
 .content-wrapper {
     max-width: var(--max-content-width);
     margin: 0 auto;
-    width: 100%;            /* Обеспечиваем полную ширину */
-    flex: 1;                /* Позволяет контенту растягиваться */
-    display: flex;          /* Добавляем flexbox */
-    flex-direction: column; /* Вертикальное направление */
-    overflow: hidden;       /* Предотвращаем выход за границы */
-}
-
-/* Исправление для section */
-.section {
-    margin-bottom: var(--space-12);
+    width: 100%;
     position: relative;
-    width: 100%;            /* Обеспечиваем полную ширину */
-    max-width: 100%;        /* Предотвращаем выход за границы */
-    box-sizing: border-box; /* Включаем border-box */
+    container-type: inline-size; /* Включаем Container Queries */
 }
 
-/* Предотвратить скролл в body и html */
+.content-wrapper--narrow {
+    max-width: var(--max-content-width-sm);
+}
+
+.content-wrapper--wide {
+    max-width: var(--max-content-width-lg);
+}
+
+.content-wrapper--full {
+    max-width: none;
+    width: 100%;
+}
+
+/* ===== СОВРЕМЕННАЯ СИСТЕМА СЕКЦИЙ ===== */
+.section {
+    margin-bottom: var(--space-16);
+    position: relative;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    animation: staggerFadeIn var(--duration-slow) var(--ease-out) forwards;
+    animation-delay: calc(var(--stagger-delay, 0) * 100ms);
+}
+
+.section--compact {
+    margin-bottom: var(--space-8);
+}
+
+.section--spacious {
+    margin-bottom: var(--space-24);
+}
+
+.section--no-margin {
+    margin-bottom: 0;
+}
+
+/* Заголовки секций */
+.section__header {
+    margin-bottom: var(--space-6);
+    padding-bottom: var(--space-3);
+    border-bottom: 2px solid var(--primary-100);
+    position: relative;
+}
+
+.section__header::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 60px;
+    height: 2px;
+    background: var(--gradient-primary);
+    border-radius: var(--radius-full);
+}
+
+.section__title {
+    font-size: var(--text-2xl);
+    font-weight: var(--font-bold);
+    color: var(--accent-800);
+    margin: 0;
+    letter-spacing: -0.025em;
+}
+
+.section__subtitle {
+    font-size: var(--text-lg);
+    color: var(--neutral-600);
+    margin: var(--space-2) 0 0 0;
+    font-weight: var(--font-normal);
+}
+
+/* ===== СОВРЕМЕННАЯ СИСТЕМА СЕТКИ ===== */
+.grid {
+    display: grid;
+    gap: var(--space-4);
+    width: 100%;
+}
+
+.grid--1 { grid-template-columns: 1fr; }
+.grid--2 { grid-template-columns: repeat(2, 1fr); }
+.grid--3 { grid-template-columns: repeat(3, 1fr); }
+.grid--4 { grid-template-columns: repeat(4, 1fr); }
+.grid--5 { grid-template-columns: repeat(5, 1fr); }
+.grid--6 { grid-template-columns: repeat(6, 1fr); }
+.grid--12 { grid-template-columns: repeat(12, 1fr); }
+
+/* Автоматическое заполнение */
+.grid--auto-fit { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
+.grid--auto-fill { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+
+/* Размеры промежутков */
+.grid--gap-none { gap: 0; }
+.grid--gap-sm { gap: var(--space-2); }
+.grid--gap-md { gap: var(--space-4); }
+.grid--gap-lg { gap: var(--space-6); }
+.grid--gap-xl { gap: var(--space-8); }
+
+/* ===== СОВРЕМЕННЫЙ FLEXBOX ===== */
+.flex {
+    display: flex;
+}
+
+.flex--column { flex-direction: column; }
+.flex--row { flex-direction: row; }
+.flex--wrap { flex-wrap: wrap; }
+.flex--nowrap { flex-wrap: nowrap; }
+
+/* Выравнивание */
+.flex--center { align-items: center; justify-content: center; }
+.flex--start { align-items: flex-start; justify-content: flex-start; }
+.flex--end { align-items: flex-end; justify-content: flex-end; }
+.flex--between { justify-content: space-between; }
+.flex--around { justify-content: space-around; }
+.flex--evenly { justify-content: space-evenly; }
+
+/* Промежутки */
+.flex--gap-sm { gap: var(--space-2); }
+.flex--gap-md { gap: var(--space-4); }
+.flex--gap-lg { gap: var(--space-6); }
+
+/* ===== КАРТОЧКИ И ПАНЕЛИ ===== */
+.card {
+    background: var(--neutral-0);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-md);
+    padding: var(--space-6);
+    transition: all var(--transition-normal);
+    border: 1px solid var(--neutral-200);
+    position: relative;
+    overflow: hidden;
+}
+
+.card:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
+    border-color: var(--primary-200);
+}
+
+.card--elevated {
+    box-shadow: var(--shadow-xl);
+}
+
+.card--flat {
+    box-shadow: none;
+    border: 1px solid var(--neutral-200);
+}
+
+.card--glass {
+    background: var(--gradient-glass);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* ===== ИСПРАВЛЕНИЯ ДЛЯ СКРОЛЛИНГА ===== */
+/* Предотвращение нежелательного скролла */
 html, body {
     overflow-x: hidden;
-    overflow-y: hidden; /* Убираем вертикальный скролл из body */
     height: 100%;
     margin: 0;
     padding: 0;
@@ -1167,50 +1363,81 @@ html, body {
     box-sizing: border-box;
 }
 
-/* Устранение проблемы с анимацией */
-@keyframes fadeIn {
-    0% {
-        opacity: 0;
-        transform: translateY(20px);
+/* ===== АДАПТИВНЫЕ КОНТЕЙНЕРЫ ===== */
+@container (max-width: 768px) {
+    .grid--auto-fit {
+        grid-template-columns: 1fr;
     }
-    100% {
-        opacity: 1;
-        transform: translateY(0);
+    
+    .grid--2,
+    .grid--3,
+    .grid--4 {
+        grid-template-columns: 1fr;
     }
 }
 
-/* Правило для ситуаций, когда контента действительно много */
+@container (min-width: 768px) and (max-width: 1024px) {
+    .grid--3,
+    .grid--4 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* Правило для больших экранов */
 @media screen and (min-height: 800px) {
     .main-content {
-        overflow-y: auto;  /* Включаем вертикальную прокрутку при необходимости */
+        overflow-y: auto;
     }
 }
 
 /*==============================================
     SIDEBAR И НАВИГАЦИЯ
+    Enhanced Sidebar with Preserved Neon Effects v2.0
 ==============================================*/
-/* Основной стиль боковой панели */
+
+/* ===== ОСНОВНОЙ СТИЛЬ САЙДБАРА ===== */
 .sidebar {
     height: 100vh;
     overscroll-behavior: none;
     position: fixed;
     width: var(--sidebar-width);
     min-height: 100vh;
-    background: var(--sidebar-gradient);
-    box-shadow: var(--shadow-lg);
-    color: var(--white);
+    
+    /* Улучшенный градиентный фон */
+    background: linear-gradient(135deg, 
+        rgba(45, 49, 66, 0.95) 0%, 
+        rgba(77, 80, 97, 0.9) 30%, 
+        rgba(45, 49, 66, 0.95) 70%, 
+        rgba(28, 31, 43, 0.98) 100%);
+    backdrop-filter: blur(20px) saturate(1.2);
+    -webkit-backdrop-filter: blur(20px) saturate(1.2);
+    
+    /* Улучшенные тени и границы */
+    box-shadow: var(--shadow-2xl), 
+                0 0 40px rgba(255, 115, 0, 0.1);
+    border-right: 1px solid rgba(255, 115, 0, 0.2);
+    
+    color: var(--neutral-50);
     display: flex;
     flex-direction: column;
-    position: sticky;
     top: 0;
     left: 0;
-    z-index: var(--z-mid);
-    transition: all var(--transition-normal), transform var(--transition-bounce);
-    overflow: visible; /* Важно для видимости эффекта за пределами */
-    border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
+    z-index: var(--z-fixed);
+    
+    /* Улучшенные переходы */
+    transition: all var(--transition-smooth), 
+                transform var(--transition-elastic),
+                box-shadow var(--transition-normal);
+    overflow: visible; /* Важно для видимости неонового эффекта */
+    border-radius: 0 var(--radius-2xl) var(--radius-2xl) 0;
+    
+    /* Дополнительные современные эффекты */
+    will-change: transform, box-shadow;
+    isolation: isolate;
 }
 
-/* Верхний градиентный эффект (сохраняем существующий) */
+/* ===== СОХРАНЕННЫЕ НЕОНОВЫЕ ЭФФЕКТЫ ===== */
+/* Верхний градиентный эффект с улучшениями */
 .sidebar::before {
     content: '';
     position: absolute;
@@ -1218,79 +1445,274 @@ html, body {
     left: 0;
     width: 100%;
     height: 100%;
-    background: radial-gradient(circle at 50% 0%, rgba(255, 81, 0, 0.3), transparent 70%);
+    background: radial-gradient(
+        ellipse at 50% 0%, 
+        rgba(255, 115, 0, 0.35) 0%,
+        rgba(255, 165, 0, 0.15) 40%,
+        transparent 70%
+    );
     pointer-events: none;
-    opacity: 0.4;
+    opacity: 0.6;
     z-index: 1;
+    transition: opacity var(--transition-slow);
+    border-radius: inherit;
 }
 
-/* Затемнение внизу (сохраняем существующий) */
+/* Затемнение внизу с улучшениями */
 .sidebar::after {
     content: '';
     position: absolute;
     bottom: 0;
     left: 0;
     width: 100%;
-    height: 250px;
-    background: linear-gradient(to top, rgba(0, 0, 0, 0.2), transparent);
+    height: 280px;
+    background: linear-gradient(
+        to top, 
+        rgba(28, 31, 43, 0.4) 0%,
+        rgba(45, 49, 66, 0.2) 30%,
+        transparent 100%
+    );
     pointer-events: none;
     z-index: 1;
+    border-radius: 0 0 var(--radius-2xl) 0;
 }
 
-/* Эффект сдвига при наведении */
+/* ===== УЛУЧШЕННЫЕ ЭФФЕКТЫ ВЗАИМОДЕЙСТВИЯ ===== */
+/* Эффект наведения с сохранением оригинального поведения */
 .sidebar:hover {
-    transform: translateX(5px);
-    box-shadow: var(--shadow-xl);
+    transform: translateX(8px) scale(1.005);
+    box-shadow: var(--shadow-3xl), 
+                0 0 60px rgba(255, 115, 0, 0.2),
+                inset 0 0 0 1px rgba(255, 115, 0, 0.3);
 }
 
-/* Неоновый эффект для перекрытия пустого пространства */
+.sidebar:hover::before {
+    opacity: 0.8;
+}
+
+/* ===== СОХРАНЕННЫЙ НЕОНОВЫЙ ЭФФЕКТ С УЛУЧШЕНИЯМИ ===== */
+/* Основной неоновый эффект (полностью сохранен с улучшениями) */
 .sidebar .neon-effect {
     position: absolute;
     top: 0;
-    left: -15px; /* Расширенная ширина влево */
-    width: 15px; /* Ширина компонента с эффектом */
+    left: -15px; /* Сохраняем оригинальное позиционирование */
+    width: 15px; /* Сохраняем оригинальную ширину */
     height: 100%;
-    z-index: 10; /* Должен быть над другими элементами */
+    z-index: var(--z-50); /* Используем новую систему z-index */
     pointer-events: none;
     opacity: 0; /* Скрыт изначально */
-    transition: opacity 0.3s ease;
+    transition: opacity var(--transition-normal), 
+                filter var(--transition-normal);
 }
 
-/* Показать неоновый эффект при наведении на сайдбар */
+/* Показать неоновый эффект при наведении (сохранено) */
 .sidebar:hover .neon-effect {
     opacity: 1;
+    filter: brightness(1.1) saturate(1.2);
 }
 
-/* Основная неоновая полоска */
+/* Основная неоновая полоска с улучшениями */
 .sidebar .neon-effect::before {
     content: '';
     position: absolute;
-    right: 0; /* Прикрепляем к правому краю элемента */
+    right: 0; /* Сохраняем оригинальное позиционирование */
     top: 0;
     width: 3px;
     height: 100%;
+    
+    /* Улучшенный градиент */
     background: linear-gradient(to bottom, 
-        rgba(255, 81, 0, 0),
-        rgba(255, 81, 0, 0.7),
-        rgba(255, 140, 0, 0.9),
-        rgba(255, 165, 0, 0.7),
-        rgba(255, 81, 0, 0));
+        rgba(255, 115, 0, 0) 0%,
+        rgba(255, 115, 0, 0.8) 15%,
+        rgba(255, 140, 0, 0.95) 35%,
+        rgba(255, 165, 0, 0.95) 65%,
+        rgba(255, 115, 0, 0.8) 85%,
+        rgba(255, 115, 0, 0) 100%);
+    
+    /* Улучшенное свечение */
     box-shadow: 
-        0 0 7px rgba(255, 81, 0, 0.7),
-        0 0 12px rgba(255, 81, 0, 0.5),
-        0 0 20px rgba(255, 81, 0, 0.3);
+        0 0 10px rgba(255, 115, 0, 0.8),
+        0 0 20px rgba(255, 115, 0, 0.6),
+        0 0 30px rgba(255, 115, 0, 0.4),
+        0 0 40px rgba(255, 115, 0, 0.2);
+    
     border-radius: 2px;
-    animation: neonPulse 2s infinite;
+    animation: neonPulse var(--duration-slower) infinite;
+    will-change: box-shadow, opacity;
 }
 
-/* Свечение для перекрытия пустого пространства */
+/* Улучшенное свечение для перекрытия пустого пространства */
 .sidebar .neon-effect::after {
     content: '';
     position: absolute;
     left: 0;
     top: 0;
-    width: 15px; /* На всю ширину элемента */
+    width: 15px; /* Сохраняем оригинальную ширину */
     height: 100%;
+    
+    /* Улучшенный градиент свечения */
+    background: linear-gradient(to right,
+        rgba(255, 115, 0, 0.08) 0%,
+        rgba(255, 115, 0, 0.15) 50%,
+        rgba(255, 115, 0, 0.08) 100%);
+    
+    border-radius: 0;
+    animation: neonGradientPulse 3s infinite alternate;
+    filter: blur(1px);
+}
+
+/* Скрываем старую neon-line если она есть */
+.sidebar .neon-line {
+    display: none;
+}
+
+/* ===== ДОПОЛНИТЕЛЬНЫЕ НЕОНОВЫЕ АНИМАЦИИ ===== */
+@keyframes neonPulse {
+    0%, 100% {
+        opacity: 0.7;
+        box-shadow: 
+            0 0 8px rgba(255, 115, 0, 0.6),
+            0 0 16px rgba(255, 115, 0, 0.4),
+            0 0 24px rgba(255, 115, 0, 0.3);
+        filter: brightness(1) saturate(1);
+    }
+    50% {
+        opacity: 1;
+        box-shadow: 
+            0 0 12px rgba(255, 115, 0, 0.9),
+            0 0 24px rgba(255, 115, 0, 0.7),
+            0 0 36px rgba(255, 115, 0, 0.5),
+            0 0 48px rgba(255, 115, 0, 0.3);
+        filter: brightness(1.2) saturate(1.3);
+    }
+}
+
+@keyframes neonGradientPulse {
+    0% {
+        opacity: 0.6;
+        background: linear-gradient(to right,
+            rgba(255, 115, 0, 0.06),
+            rgba(255, 115, 0, 0.12),
+            rgba(255, 115, 0, 0.06));
+    }
+    100% {
+        opacity: 0.9;
+        background: linear-gradient(to right,
+            rgba(255, 115, 0, 0.10),
+            rgba(255, 115, 0, 0.18),
+            rgba(255, 115, 0, 0.10));
+    }
+}
+
+/* ===== ЛОГОТИП И НАВИГАЦИЯ ===== */
+.sidebar .logo {
+    padding: var(--space-8) var(--space-6);
+    text-align: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    position: relative;
+    z-index: 2;
+}
+
+.sidebar .logo h1 {
+    color: var(--neutral-50);
+    font-size: var(--text-2xl);
+    font-weight: var(--font-bold);
+    margin: 0;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    letter-spacing: -0.025em;
+}
+
+/* Навигационные элементы */
+.sidebar .nav {
+    flex: 1;
+    padding: var(--space-4) 0;
+    position: relative;
+    z-index: 2;
+}
+
+.sidebar .nav-item {
+    position: relative;
+    margin: var(--space-1) var(--space-4);
+}
+
+.sidebar .nav-link {
+    display: flex;
+    align-items: center;
+    padding: var(--space-3) var(--space-4);
+    color: var(--neutral-200);
+    text-decoration: none;
+    border-radius: var(--radius-lg);
+    transition: all var(--transition-fast);
+    position: relative;
+    overflow: hidden;
+    font-weight: var(--font-medium);
+}
+
+.sidebar .nav-link:hover {
+    background: rgba(255, 115, 0, 0.1);
+    color: var(--neutral-50);
+    transform: translateX(4px);
+    box-shadow: inset 0 0 20px rgba(255, 115, 0, 0.1);
+}
+
+.sidebar .nav-link.active {
+    background: rgba(255, 115, 0, 0.2);
+    color: var(--neutral-50);
+    box-shadow: 
+        inset 0 0 20px rgba(255, 115, 0, 0.2),
+        0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.sidebar .nav-link::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 0;
+    background: var(--gradient-primary);
+    transition: width var(--transition-fast);
+    border-radius: 0 var(--radius-md) var(--radius-md) 0;
+}
+
+.sidebar .nav-link:hover::before,
+.sidebar .nav-link.active::before {
+    width: 4px;
+}
+
+/* ===== АДАПТИВНЫЕ СОСТОЯНИЯ САЙДБАРА ===== */
+.sidebar--collapsed {
+    width: var(--sidebar-collapsed);
+    
+    .nav-link {
+        justify-content: center;
+        padding: var(--space-3);
+    }
+    
+    .nav-link span {
+        display: none;
+    }
+    
+    .logo h1 {
+        font-size: var(--text-lg);
+    }
+}
+
+/* Мобильная версия */
+@media (max-width: 768px) {
+    .sidebar {
+        transform: translateX(-100%);
+        transition: transform var(--transition-normal);
+    }
+    
+    .sidebar--open {
+        transform: translateX(0);
+    }
+    
+    .sidebar .neon-effect {
+        display: none; /* Скрываем неоновый эффект на мобильных */
+    }
+}
     background: linear-gradient(to right,
         rgba(255, 81, 0, 0.07),
         rgba(255, 81, 0, 0.12),
@@ -1839,34 +2261,226 @@ html, body {
 }
 
 /*==============================================
-    КНОПКИ АВТОРИЗАЦИИ
+    КНОПКИ И ИНТЕРАКТИВНЫЕ ЭЛЕМЕНТЫ
+    Enhanced Button System v2.0
 ==============================================*/
+
+/* ===== БАЗОВАЯ СИСТЕМА КНОПОК ===== */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-5);
+    font-family: var(--font-sans);
+    font-size: var(--text-sm);
+    font-weight: var(--font-medium);
+    line-height: var(--leading-none);
+    text-decoration: none;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: middle;
+    cursor: pointer;
+    user-select: none;
+    border: 1px solid transparent;
+    border-radius: var(--radius-lg);
+    transition: all var(--transition-fast);
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+    
+    /* Фокус и доступность */
+    outline: none;
+    outline-offset: 2px;
+}
+
+.btn:focus-visible {
+    outline: 2px solid var(--primary-500);
+    outline-offset: 2px;
+}
+
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+/* ===== РАЗМЕРЫ КНОПОК ===== */
+.btn--xs {
+    padding: var(--space-1-5) var(--space-3);
+    font-size: var(--text-xs);
+    border-radius: var(--radius-sm);
+}
+
+.btn--sm {
+    padding: var(--space-2) var(--space-4);
+    font-size: var(--text-sm);
+    border-radius: var(--radius-md);
+}
+
+.btn--md {
+    padding: var(--space-3) var(--space-6);
+    font-size: var(--text-base);
+    border-radius: var(--radius-lg);
+}
+
+.btn--lg {
+    padding: var(--space-4) var(--space-8);
+    font-size: var(--text-lg);
+    border-radius: var(--radius-xl);
+}
+
+.btn--xl {
+    padding: var(--space-5) var(--space-10);
+    font-size: var(--text-xl);
+    border-radius: var(--radius-2xl);
+    font-weight: var(--font-semibold);
+}
+
+/* ===== ОСНОВНЫЕ ВАРИАНТЫ КНОПОК ===== */
+/* Основная кнопка с градиентом */
+.btn--primary {
+    background: var(--gradient-primary);
+    background-size: 200% 200%;
+    color: var(--neutral-0);
+    border-color: var(--primary-600);
+    box-shadow: var(--shadow-button-primary);
+    animation: gradientFlow 6s ease infinite;
+}
+
+.btn--primary:hover {
+    background-position: right center;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-button-primary-hover);
+    filter: brightness(1.05);
+}
+
+.btn--primary:active {
+    transform: translateY(0);
+    box-shadow: var(--shadow-button-active);
+}
+
+/* Вторичная кнопка */
+.btn--secondary {
+    background: var(--neutral-0);
+    color: var(--accent-800);
+    border-color: var(--neutral-300);
+    box-shadow: var(--shadow-button);
+}
+
+.btn--secondary:hover {
+    background: var(--neutral-50);
+    border-color: var(--primary-300);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-button-hover);
+}
+
+/* Кнопка-призрак */
+.btn--ghost {
+    background: transparent;
+    color: var(--primary-600);
+    border-color: var(--primary-200);
+}
+
+.btn--ghost:hover {
+    background: var(--primary-50);
+    border-color: var(--primary-400);
+    color: var(--primary-700);
+}
+
+/* Опасная кнопка */
+.btn--danger {
+    background: var(--danger-600);
+    color: var(--neutral-0);
+    border-color: var(--danger-600);
+    box-shadow: 0 4px 14px 0 rgba(220, 38, 38, 0.3);
+}
+
+.btn--danger:hover {
+    background: var(--danger-700);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px 0 rgba(220, 38, 38, 0.4);
+}
+
+/* ===== СПЕЦИАЛЬНЫЕ ЭФФЕКТЫ ===== */
+/* Эффект блеска при наведении */
+.btn--shimmer::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        90deg, 
+        transparent 0%, 
+        rgba(255, 255, 255, 0.2) 50%, 
+        transparent 100%
+    );
+    transition: left var(--duration-slow) var(--ease-out);
+    z-index: -1;
+}
+
+.btn--shimmer:hover::before {
+    left: 100%;
+}
+
+/* Эффект пульсации */
+.btn--pulse {
+    animation: pulse 2s infinite;
+}
+
+/* Эффект неонового свечения */
+.btn--neon {
+    background: transparent;
+    color: var(--primary-500);
+    border: 2px solid var(--primary-500);
+    text-shadow: 0 0 8px var(--primary-500);
+    box-shadow: 
+        inset 0 0 12px rgba(255, 115, 0, 0.1),
+        0 0 12px rgba(255, 115, 0, 0.3);
+}
+
+.btn--neon:hover {
+    background: var(--primary-500);
+    color: var(--neutral-0);
+    text-shadow: none;
+    box-shadow: 
+        inset 0 0 20px rgba(255, 115, 0, 0.2),
+        0 0 20px rgba(255, 115, 0, 0.5),
+        0 0 40px rgba(255, 115, 0, 0.3);
+    animation: neonGlow 1.5s ease-in-out infinite alternate;
+}
+
+/* ===== КНОПКИ АВТОРИЗАЦИИ (ОБНОВЛЕННЫЕ) ===== */
 .login-button,
 #logoutBtn {
-    background: var(--primary-gradient);
+    background: var(--gradient-primary);
     background-size: 200% 200%;
-    color: var(--white);
+    color: var(--neutral-0);
     border: none;
-    padding: var(--space-3) var(--space-5);
+    padding: var(--space-3) var(--space-6);
     margin: var(--space-6) auto;
     width: 85%;
-    border-radius: var(--radius-md);
-    font-weight: 600;
-    font-size: var(--font-size-sm);
-    letter-spacing: 0.5px;
+    border-radius: var(--radius-xl);
+    font-weight: var(--font-semibold);
+    font-size: var(--text-sm);
+    letter-spacing: 0.025em;
     text-transform: uppercase;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    box-shadow: var(--shadow-button-primary);
     position: relative;
     overflow: hidden;
     z-index: 2;
-    transition: all var(--transition-normal);
-    animation: gradientFlow 5s ease infinite;
+    transition: all var(--transition-smooth);
+    animation: gradientFlow 8s ease infinite;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: var(--space-2);
+    isolation: isolate;
 }
 
+/* Улучшенный эффект блеска */
 .login-button::before,
 #logoutBtn::before {
     content: '';
@@ -1875,8 +2489,15 @@ html, body {
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-    transition: all 0.8s;
+    background: linear-gradient(
+        90deg, 
+        transparent 0%, 
+        rgba(255, 255, 255, 0.3) 30%,
+        rgba(255, 255, 255, 0.5) 50%,
+        rgba(255, 255, 255, 0.3) 70%,
+        transparent 100%
+    );
+    transition: left var(--duration-slower) var(--ease-out);
     z-index: -1;
 }
 
@@ -1885,17 +2506,100 @@ html, body {
     left: 100%;
 }
 
+/* Улучшенные эффекты наведения */
 .login-button:hover,
 #logoutBtn:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
-    background-position: right bottom;
-    letter-spacing: 1px;
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: var(--shadow-button-primary-hover);
+    background-position: right center;
+    letter-spacing: 0.05em;
+    filter: brightness(1.1) saturate(1.1);
 }
 
 .login-button:active,
 #logoutBtn:active {
-    transform: translateY(1px);
+    transform: translateY(-1px) scale(0.98);
+    box-shadow: var(--shadow-button-active);
+    transition: transform var(--duration-fast);
+}
+
+/* ===== ГРУППЫ КНОПОК ===== */
+.btn-group {
+    display: inline-flex;
+    gap: 0;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+}
+
+.btn-group .btn {
+    border-radius: 0;
+    margin: 0;
+}
+
+.btn-group .btn:first-child {
+    border-top-left-radius: var(--radius-lg);
+    border-bottom-left-radius: var(--radius-lg);
+}
+
+.btn-group .btn:last-child {
+    border-top-right-radius: var(--radius-lg);
+    border-bottom-right-radius: var(--radius-lg);
+}
+
+.btn-group .btn:not(:last-child) {
+    border-right: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* ===== КНОПКИ-ИКОНКИ ===== */
+.btn--icon {
+    aspect-ratio: 1;
+    padding: var(--space-2);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn--icon.btn--sm {
+    padding: var(--space-1-5);
+}
+
+.btn--icon.btn--lg {
+    padding: var(--space-3);
+}
+
+/* ===== АДАПТИВНЫЕ КНОПКИ ===== */
+@media (max-width: 768px) {
+    .btn--responsive {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .btn-group {
+        flex-direction: column;
+    }
+    
+    .btn-group .btn {
+        border-radius: 0;
+    }
+    
+    .btn-group .btn:first-child {
+        border-top-left-radius: var(--radius-lg);
+        border-top-right-radius: var(--radius-lg);
+        border-bottom-left-radius: 0;
+    }
+    
+    .btn-group .btn:last-child {
+        border-bottom-left-radius: var(--radius-lg);
+        border-bottom-right-radius: var(--radius-lg);
+        border-top-right-radius: 0;
+    }
+    
+    .btn-group .btn:not(:last-child) {
+        border-right: none;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    }
+}
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
 }
 
