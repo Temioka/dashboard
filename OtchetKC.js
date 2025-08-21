@@ -3333,88 +3333,231 @@ const ReportModule = (function() {
      * Добавляет период для сравнения в произвольном режиме
      */
         function addCustomComparisonPeriod() {
-        const container = elements.customComparisonContainer;
-        if (!container) return;
-        
-        const comparisonIndex = state.customComparisonPeriods.length;
-        
-        const comparisonDiv = document.createElement('div');
-        comparisonDiv.className = 'custom-comparison-period-item';
-        comparisonDiv.style.cssText = `
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 10px;
-            padding: 12px;
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            background-color: #f8f9fa;
-        `;
-        
-        // Получаем значения основного периода
-        const mainStartDate = document.getElementById('start-date')?.value || '';
-        const mainEndDate = document.getElementById('end-date')?.value || '';
-        
-        comparisonDiv.innerHTML = `
-            <label style="font-weight: 600; color: #2c3e50; min-width: 120px;">
-                Сравнение ${comparisonIndex + 1}:
-            </label>
-            <input type="date" 
-                id="custom-comparison-start-${comparisonIndex}" 
-                value="${mainStartDate}"
-                style="flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-family: 'Montserrat', sans-serif;">
-            <span style="color: #666; font-weight: 500;">—</span>
-            <input type="date" 
-                id="custom-comparison-end-${comparisonIndex}" 
-                value="${mainEndDate}"
-                style="flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-family: 'Montserrat', sans-serif;">
-            <button type="button" 
-                    onclick="removeCustomComparisonPeriod(${comparisonIndex})"
-                    style="padding: 8px 12px; background: #e74c3c; color: white; border: none; border-radius: 4px; cursor: pointer; font-family: 'Montserrat', sans-serif;">
-                Удалить
-            </button>
-        `;
-        
-        container.appendChild(comparisonDiv);
-        
-        const startDate = document.getElementById(`custom-comparison-start-${comparisonIndex}`);
-        const endDate = document.getElementById(`custom-comparison-end-${comparisonIndex}`);
-        
-        // ИСПРАВЛЕНИЕ: Используем ту же логику форматирования
-        const updateCustomComparisonPeriod = () => {
-            const startValue = startDate.value;
-            const endValue = endDate.value;
-            
-            if (startValue && endValue) {
-                // Форматируем точно так же как основной период
-                const formattedLabel = formatCustomDateRange(startValue, endValue);
-                
-                state.customComparisonPeriods[comparisonIndex] = {
-                    startDate: startValue,
-                    endDate: endValue,
-                    label: formattedLabel, // Используем ту же функцию форматирования
-                    period: comparisonIndex + 1
-                };
-                
-                updateCustomComparisonPeriodTitles();
+            if (!elements.customComparisonContainer) {
+                console.warn('[WARNING] customComparisonContainer не найден');
+                return;
             }
-        };
+            
+            const periodId = `custom-compare-${Date.now()}`;
+            
+            // Получаем текущую дату
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const todayDate = `${year}-${month}-${day}`;
+            
+            console.log(`[UI] Добавление периода сравнения: ${periodId}`);
+            
+            // Создаем элемент периода
+            const periodItem = document.createElement('div');
+            periodItem.className = 'date-comparison-item';
+            periodItem.dataset.id = periodId;
+            periodItem.style.opacity = '0';
+            periodItem.style.transform = 'translateX(-30px) scale(0.95)';
+            
+            periodItem.innerHTML = `
+                <div class="comparison-header">
+                    <span class="comparison-title">Выберите период для сравнения</span>
+                    <button type="button" class="remove-comparison-btn" title="Удалить период" aria-label="Удалить период сравнения">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="date-range-container">
+                    <div class="date-field">
+                        <label for="start-date-${periodId}">Начало периода:</label>
+                        <div class="input-with-icon">
+                            <i class="far fa-calendar-alt"></i>
+                            <input type="date" 
+                                id="start-date-${periodId}"
+                                class="form-input start-date" 
+                                value="${todayDate}" 
+                                min="${DATE_LIMITS.MIN_DATE}" 
+                                max="${todayDate}"
+                                aria-describedby="start-date-help-${periodId}">
+                        </div>
+                    </div>
+                    <div class="date-field">
+                        <label for="end-date-${periodId}">Конец периода:</label>
+                        <div class="input-with-icon">
+                            <i class="far fa-calendar-alt"></i>
+                            <input type="date" 
+                                id="end-date-${periodId}"
+                                class="form-input end-date" 
+                                value="${todayDate}" 
+                                min="${DATE_LIMITS.MIN_DATE}" 
+                                max="${todayDate}"
+                                aria-describedby="end-date-help-${periodId}">
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Добавляем элемент в контейнер
+            elements.customComparisonContainer.appendChild(periodItem);
+            
+            // Анимация появления
+            setTimeout(() => {
+                periodItem.style.transition = 'all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+                periodItem.style.opacity = '1';
+                periodItem.style.transform = 'translateX(0) scale(1)';
+            }, 10);
+            
+            // Получаем элементы
+            const removeBtn = periodItem.querySelector('.remove-comparison-btn');
+            const startDateInput = periodItem.querySelector('.start-date');
+            const endDateInput = periodItem.querySelector('.end-date');
+            const titleElement = periodItem.querySelector('.comparison-title');
+            
+            /**
+             * Валидирует диапазон дат
+             */
+            function validateDateRange() {
+                if (!startDateInput.value || !endDateInput.value) return true;
+                
+                const startDate = new Date(startDateInput.value);
+                const endDate = new Date(endDateInput.value);
+                
+                if (startDate > endDate) {
+                    endDateInput.setCustomValidity('Дата окончания должна быть позже даты начала');
+                    endDateInput.reportValidity();
+                    showNotification('error', 'Дата окончания должна быть позже даты начала');
+                    return false;
+                }
+                
+                // Сбрасываем ошибки валидации
+                startDateInput.setCustomValidity('');
+                endDateInput.setCustomValidity('');
+                return true;
+            }
+            
+            /**
+             * Обновляет заголовок периода
+             */
+            function updatePeriodTitle() {
+        if (!startDateInput.value || !endDateInput.value) {
+            titleElement.textContent = 'Выберите период для сравнения';
+            return;
+        }
         
-        startDate.addEventListener('change', updateCustomComparisonPeriod);
-        endDate.addEventListener('change', updateCustomComparisonPeriod);
-        
-        // Инициализируем сразу
-        updateCustomComparisonPeriod();
+        try {
+            // ИЗМЕНЕНО: Используем новую функцию форматирования
+            const formattedRange = formatCustomDateRangeForTitle(startDateInput.value, endDateInput.value);
+            titleElement.textContent = formattedRange;
+            
+            // Обновляем данные в состоянии
+            const periodIndex = state.customComparisonPeriods.findIndex(p => p.id === periodId);
+            if (periodIndex !== -1) {
+                state.customComparisonPeriods[periodIndex].label = formattedRange;
+                state.customComparisonPeriods[periodIndex].startDate = startDateInput.value;
+                state.customComparisonPeriods[periodIndex].endDate = endDateInput.value;
+            }
+            
+        } catch (error) {
+            console.error('[ERROR] Ошибка при обновлении заголовка:', error);
+            titleElement.textContent = 'Ошибка формата даты';
+        }
     }
+    
+    // Обработчики для начальной даты
+    startDateInput.addEventListener('change', function() {
+        if (validateDateInput(this, 'Начало периода')) {
+            if (validateDateRange()) {
+                updatePeriodTitle();
+            }
+        }
+    });
+    
+    startDateInput.addEventListener('blur', function() {
+        updatePeriodTitle();
+    });
+    
+    // Обработчики для конечной даты
+    endDateInput.addEventListener('change', function() {
+        if (validateDateInput(this, 'Конец периода')) {
+            if (validateDateRange()) {
+                updatePeriodTitle();
+            }
+        }
+    });
+    
+    endDateInput.addEventListener('blur', function() {
+        updatePeriodTitle();
+    });
+    
+    // Обработчик удаления периода
+    removeBtn.addEventListener('click', function() {
+        console.log(`[UI] Удаление периода сравнения: ${periodId}`);
+        
+        // Анимация исчезновения
+        periodItem.style.transition = 'all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+        periodItem.style.opacity = '0';
+        periodItem.style.transform = 'translateX(30px) scale(0.95)';
+        
+        setTimeout(() => {
+            // Удаляем из состояния
+            state.customComparisonPeriods = state.customComparisonPeriods.filter(p => p.id !== periodId);
+            
+            // Если больше нет периодов сравнения, возвращаемся к обычному режиму
+            if (state.customComparisonPeriods.length === 0) {
+                state.periodType = 'custom';
+            }
+            
+            // Удаляем элемент из DOM
+            if (periodItem.parentNode) {
+                periodItem.parentNode.removeChild(periodItem);
+            }
+            
+            showNotification('info', 'Период сравнения удален', {}, 'Информация');
+        }, 400);
+    });
+    
+    // ИЗМЕНЕНО: Добавляем период в состояние с правильными данными
+    const periodData = {
+        id: periodId,
+        element: periodItem,
+        startInput: startDateInput,
+        endInput: endDateInput,
+        titleElement: titleElement,
+        label: 'Выберите период для сравнения', // Будет обновлено при выборе дат
+        startDate: todayDate,
+        endDate: todayDate
+    };
+    
+    state.customComparisonPeriods.push(periodData);
+    
+    // Сразу обновляем заголовок с текущими датами
+    updatePeriodTitle();
+    
+    // Устанавливаем фокус на первое поле для удобства
+    setTimeout(() => {
+        startDateInput.focus();
+    }, 100);
+    
+    showNotification('success', 'Период для сравнения добавлен', {}, 'Успешно');
+    
+    console.log(`[UI] Период сравнения добавлен: ${periodId}`, periodData);
+}
 
         /**
          * Валидирует ввод даты
          */
         function validateDateInput(input, fieldName) {
+            if (!input || !input.value) return true;
+            
             const selectedDate = new Date(input.value);
             const minDate = new Date(DATE_LIMITS.MIN_DATE);
             const maxDate = new Date();
             
+            // Проверяем валидность даты
+            if (isNaN(selectedDate.getTime())) {
+                input.setCustomValidity('Введите корректную дату');
+                input.reportValidity();
+                showNotification('error', `${fieldName}: введите корректную дату`);
+                return false;
+            }
+            
+            // Проверяем минимальную дату
             if (selectedDate < minDate) {
                 input.setCustomValidity(`${fieldName} не может быть раньше ${DATE_LIMITS.MIN_DATE}`);
                 input.reportValidity();
@@ -3424,6 +3567,7 @@ const ReportModule = (function() {
                 return false;
             }
             
+            // Проверяем максимальную дату (не в будущем)
             if (selectedDate > maxDate) {
                 input.setCustomValidity(`${fieldName} не может быть в будущем`);
                 input.reportValidity();
@@ -3436,9 +3580,125 @@ const ReportModule = (function() {
                 return false;
             }
             
+            // Сбрасываем ошибки валидации
             input.setCustomValidity('');
             return true;
         }
+
+        /**
+         * Обновляет заголовки периодов сравнения для произвольного периода
+         */
+        function updateCustomComparisonTitles() {
+            if (!state.customComparisonPeriods || state.customComparisonPeriods.length === 0) {
+                return;
+            }
+            
+            state.customComparisonPeriods.forEach((period, index) => {
+                const titleElement = period.element?.querySelector('.comparison-title');
+                if (!titleElement) return;
+                
+                const startInput = period.startInput;
+                const endInput = period.endInput;
+                
+                if (startInput?.value && endInput?.value) {
+                    try {
+                        const startDate = new Date(startInput.value);
+                        const endDate = new Date(endInput.value);
+                        
+                        if (!isNaN(startDate.getTime()) && !isNaN(endDate.getTime())) {
+                            // ИСПРАВЛЕНО: Форматируем красивый диапазон дат
+                            const dateRange = formatCustomDateRangeForTitle(startInput.value, endInput.value);
+                            titleElement.textContent = dateRange;
+                            
+                            // Обновляем также данные в состоянии
+                            period.label = dateRange;
+                            period.startDate = startInput.value;
+                            period.endDate = endInput.value;
+                            
+                            return;
+                        }
+                    } catch (error) {
+                        console.warn(`Ошибка форматирования даты для периода ${index}:`, error);
+                    }
+                }
+                
+                titleElement.textContent = 'Выберите период для сравнения';
+            });
+        }
+
+            /**
+             * Форматирует диапазон дат для заголовка
+             */
+
+        function formatCustomDateRangeForTitle(startDateStr, endDateStr) {
+            if (!startDateStr || !endDateStr) {
+                return 'Выберите период для сравнения';
+            }
+            
+            try {
+                const startDate = new Date(startDateStr);
+                const endDate = new Date(endDateStr);
+                
+                if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+                    return 'Некорректный период';
+                }
+                
+                // Если одна и та же дата
+                if (startDateStr === endDateStr) {
+                    return startDate.toLocaleDateString('ru-RU');
+                }
+                
+                const startFormatted = startDate.toLocaleDateString('ru-RU');
+                const endFormatted = endDate.toLocaleDateString('ru-RU');
+                
+                // Проверяем, находятся ли даты в одном месяце/году для сокращения
+                const startYear = startDate.getFullYear();
+                const endYear = endDate.getFullYear();
+                const startMonth = startDate.getMonth();
+                const endMonth = endDate.getMonth();
+                const startDay = startDate.getDate();
+                const endDay = endDate.getDate();
+                
+                // Если в одном месяце одного года
+                if (startYear === endYear && startMonth === endMonth) {
+                    if (startDay === endDay) {
+                        // Один день
+                        return `${startDay.toString().padStart(2, '0')}.${(startMonth + 1).toString().padStart(2, '0')}.${startYear}`;
+                    } else {
+                        // Несколько дней в одном месяце
+                        return `${startDay.toString().padStart(2, '0')}-${endDay.toString().padStart(2, '0')}.${(startMonth + 1).toString().padStart(2, '0')}.${startYear}`;
+                    }
+                }
+                // Если в одном году, но разные месяцы
+                else if (startYear === endYear) {
+                    return `${startDay.toString().padStart(2, '0')}.${(startMonth + 1).toString().padStart(2, '0')} — ${endDay.toString().padStart(2, '0')}.${(endMonth + 1).toString().padStart(2, '0')}.${startYear}`;
+                }
+                // Разные годы
+                else {
+                    return `${startFormatted} — ${endFormatted}`;
+                }
+                
+            } catch (error) {
+                console.error('Ошибка форматирования диапазона дат:', error);
+                return 'Ошибка формата даты';
+            }
+        }
+
+        /**
+         * Удаляет период сравнения (глобальная функция для onclick)
+         */
+        window.removeCustomComparisonPeriod = function(index) {
+            console.warn('[DEPRECATED] Использование removeCustomComparisonPeriod через onclick устарело');
+            
+            if (state.customComparisonPeriods && state.customComparisonPeriods[index]) {
+                const period = state.customComparisonPeriods[index];
+                const removeBtn = period.element?.querySelector('.remove-comparison-btn');
+                
+                if (removeBtn) {
+                    removeBtn.click();
+                }
+            }
+        };
 
     /**
      * Валидирует ввод даты-времени
@@ -3536,32 +3796,6 @@ const ReportModule = (function() {
         return '';
     }
     
-    /**
-     * Обновляет заголовки периодов сравнения для произвольного периода
-     */
-    function updateCustomComparisonTitles() {
-        state.customComparisonPeriods.forEach((period) => {
-            const titleElement = period.element.querySelector('.comparison-title');
-            if (!titleElement) return;
-            
-            const startInput = period.startInput;
-            const endInput = period.endInput;
-            
-            if (startInput?.value && endInput?.value) {
-                const startDate = new Date(startInput.value);
-                const endDate = new Date(endInput.value);
-                
-                if (!isNaN(startDate.getTime()) && !isNaN(endDate.getTime())) {
-                    const startStr = startDate.toLocaleDateString();
-                    const endStr = endDate.toLocaleDateString();
-                    titleElement.textContent = `${startStr} — ${endStr}`;
-                    return;
-                }
-            }
-            
-            titleElement.textContent = `Выберите период для сравнения`;
-        });
-    }
     
     /**
      * Проверяет корректность диапазона дат
@@ -5641,192 +5875,192 @@ function createDetailedWaitTimeComparisonChart(periodsData) {
     /**
      * Создает детальный график количества вызовов для сравнения (GROUPED BARS)
      */
-/**
- * ИСПРАВЛЕННАЯ ФУНКЦИЯ: Убираем цифры и улучшаем заголовок
- */
-function createDetailedCallsComparisonChart(periodsData) {
+    /**
+     * ИСПРАВЛЕННАЯ ФУНКЦИЯ: Убираем цифры и улучшаем заголовок
+     */
+    function createDetailedCallsComparisonChart(periodsData) {
 
-    if (!periodsData || periodsData.length === 0) {
-        console.error('Нет данных периодов для графика');
-        return;
-    }
-    
-    const canvas = document.getElementById('calls-chart');
-    if (!canvas) {
-        console.error('Canvas calls-chart не найден');
-        return;
-    }
-    
-    const ctx = canvas.getContext('2d');
-    const chartType = state.chartTypes.calls || 'bar';
-    
-    // Обрабатываем данные
-    const processedPeriods = [];
-    let maxDataLength = 0;
-    
-    periodsData.forEach((period, periodIndex) => {
-        if (!period.data || period.data.length === 0) return;
+        if (!periodsData || periodsData.length === 0) {
+            console.error('Нет данных периодов для графика');
+            return;
+        }
         
-        const sortedData = sortChartData(period.data, state.periodType.replace('-comparison', ''));
-        const processedItems = [];
+        const canvas = document.getElementById('calls-chart');
+        if (!canvas) {
+            console.error('Canvas calls-chart не найден');
+            return;
+        }
         
-        sortedData.forEach((row, rowIndex) => {
-            let dateLabel = '';
+        const ctx = canvas.getContext('2d');
+        const chartType = state.chartTypes.calls || 'bar';
+        
+        // Обрабатываем данные
+        const processedPeriods = [];
+        let maxDataLength = 0;
+        
+        periodsData.forEach((period, periodIndex) => {
+            if (!period.data || period.data.length === 0) return;
             
-            if (state.dataType === 'detailed') {
-                if (state.periodType.startsWith('custom')) {
-                    dateLabel = formatPeriodDate(row.report_date, 'custom');
-                } else if (state.periodType.startsWith('hour')) {
-                    const hourMatch = row.report_hour ? row.report_hour.match(/\d+/) : null;
-                    const hour = hourMatch ? hourMatch[0] + ':00' : (row.report_hour || 'Час');
-                    dateLabel = hour;
-                } else {
-                    dateLabel = formatPeriodDate(row.report_date, state.periodType.replace('-comparison', ''));
-                }
-            } else {
-                if (state.periodType.startsWith('hour')) {
-                    const date = formatPeriodDate(row.report_date, 'hour');
-                    const hourMatch = row.report_hour ? row.report_hour.match(/\d+/) : null;
-                    const hour = hourMatch ? hourMatch[0] + ':00' : row.report_hour;
-                    dateLabel = hour ? `${date} ${hour}` : `${date} ${row.report_hour}`;
-                } else {
-                    dateLabel = formatPeriodDate(row.report_date, state.periodType.replace('-comparison', ''));
-                }
-            }
+            const sortedData = sortChartData(period.data, state.periodType.replace('-comparison', ''));
+            const processedItems = [];
             
-            processedItems.push({
-                position: rowIndex,
-                dateLabel: dateLabel,
-                value: row.received_calls || 0,
-                originalDate: row.report_date,
-                originalRow: row
+            sortedData.forEach((row, rowIndex) => {
+                let dateLabel = '';
+                
+                if (state.dataType === 'detailed') {
+                    if (state.periodType.startsWith('custom')) {
+                        dateLabel = formatPeriodDate(row.report_date, 'custom');
+                    } else if (state.periodType.startsWith('hour')) {
+                        const hourMatch = row.report_hour ? row.report_hour.match(/\d+/) : null;
+                        const hour = hourMatch ? hourMatch[0] + ':00' : (row.report_hour || 'Час');
+                        dateLabel = hour;
+                    } else {
+                        dateLabel = formatPeriodDate(row.report_date, state.periodType.replace('-comparison', ''));
+                    }
+                } else {
+                    if (state.periodType.startsWith('hour')) {
+                        const date = formatPeriodDate(row.report_date, 'hour');
+                        const hourMatch = row.report_hour ? row.report_hour.match(/\d+/) : null;
+                        const hour = hourMatch ? hourMatch[0] + ':00' : row.report_hour;
+                        dateLabel = hour ? `${date} ${hour}` : `${date} ${row.report_hour}`;
+                    } else {
+                        dateLabel = formatPeriodDate(row.report_date, state.periodType.replace('-comparison', ''));
+                    }
+                }
+                
+                processedItems.push({
+                    position: rowIndex,
+                    dateLabel: dateLabel,
+                    value: row.received_calls || 0,
+                    originalDate: row.report_date,
+                    originalRow: row
+                });
+            });
+            
+            maxDataLength = Math.max(maxDataLength, processedItems.length);
+            
+            processedPeriods.push({
+                originalPeriod: period,
+                label: period.label,
+                color: period.color,
+                isMainPeriod: period.isMainPeriod,
+                processedItems: processedItems,
+                periodIndex: periodIndex
             });
         });
         
-        maxDataLength = Math.max(maxDataLength, processedItems.length);
+        if (processedPeriods.length === 0 || maxDataLength === 0) {
+            console.error('Нет валидных данных для создания графика');
+            return;
+        }
         
-        processedPeriods.push({
-            originalPeriod: period,
-            label: period.label,
-            color: period.color,
-            isMainPeriod: period.isMainPeriod,
-            processedItems: processedItems,
-            periodIndex: periodIndex
-        });
-    });
-    
-    if (processedPeriods.length === 0 || maxDataLength === 0) {
-        console.error('Нет валидных данных для создания графика');
-        return;
-    }
-    
-    // ФУНКЦИЯ: Форматирование компактной даты БЕЗ ЦИФР
-    function formatCompactDate(dateString) {
-        if (!dateString) return '';
-        
-        try {
-            // Если дата в формате DD.MM.YYYY
-            if (dateString.includes('.')) {
-                const parts = dateString.split('.');
-                if (parts.length === 3) {
-                    const day = parts[0];
-                    const month = parts[1];
-                    const year = parts[2];
-                    
-                    // Возвращаем формат БЕЗ года: DD.MM
-                    return `${day}.${month}`;
+        // ФУНКЦИЯ: Форматирование компактной даты БЕЗ ЦИФР
+        function formatCompactDate(dateString) {
+            if (!dateString) return '';
+            
+            try {
+                // Если дата в формате DD.MM.YYYY
+                if (dateString.includes('.')) {
+                    const parts = dateString.split('.');
+                    if (parts.length === 3) {
+                        const day = parts[0];
+                        const month = parts[1];
+                        const year = parts[2];
+                        
+                        // Возвращаем формат БЕЗ года: DD.MM
+                        return `${day}.${month}`;
+                    }
                 }
+                
+                return dateString;
+            } catch (error) {
+                console.warn('Ошибка форматирования даты:', error);
+                return dateString;
             }
-            
-            return dateString;
-        } catch (error) {
-            console.warn('Ошибка форматирования даты:', error);
-            return dateString;
         }
-    }
-    
-    // СОЗДАЕМ КОМПАКТНЫЕ КОМБИНИРОВАННЫЕ МЕТКИ БЕЗ ЦИФР
-    const labels = [];
-    const fullLabels = []; // Полные метки для tooltip
-    const mainPeriod = processedPeriods.find(p => p.isMainPeriod);
-    const comparisonPeriod = processedPeriods.find(p => !p.isMainPeriod);
-    
-    for (let position = 0; position < maxDataLength; position++) {
-        const mainDate = mainPeriod && mainPeriod.processedItems[position] 
-            ? mainPeriod.processedItems[position].dateLabel 
-            : `День ${position + 1}`;
+        
+        // СОЗДАЕМ КОМПАКТНЫЕ КОМБИНИРОВАННЫЕ МЕТКИ БЕЗ ЦИФР
+        const labels = [];
+        const fullLabels = []; // Полные метки для tooltip
+        const mainPeriod = processedPeriods.find(p => p.isMainPeriod);
+        const comparisonPeriod = processedPeriods.find(p => !p.isMainPeriod);
+        
+        for (let position = 0; position < maxDataLength; position++) {
+            const mainDate = mainPeriod && mainPeriod.processedItems[position] 
+                ? mainPeriod.processedItems[position].dateLabel 
+                : `День ${position + 1}`;
+                
+            const compDate = comparisonPeriod && comparisonPeriod.processedItems[position] 
+                ? comparisonPeriod.processedItems[position].dateLabel 
+                : `День ${position + 1}`;
             
-        const compDate = comparisonPeriod && comparisonPeriod.processedItems[position] 
-            ? comparisonPeriod.processedItems[position].dateLabel 
-            : `День ${position + 1}`;
-        
-        // Компактные метки для оси X БЕЗ ГОДА
-        const mainCompact = formatCompactDate(mainDate);
-        const compCompact = formatCompactDate(compDate);
-        
-        // Полные метки для tooltip
-        const fullMainDate = mainDate;
-        const fullCompDate = compDate;
-        
-        let compactLabel = '';
-        let fullLabel = '';
-        
-        if (mainCompact === compCompact) {
-            // Если даты одинаковые (без года)
-            compactLabel = mainCompact;
-            fullLabel = fullMainDate;
-        } else {
-            // Если разные - используем компактный формат БЕЗ СИМВОЛОВ
-            if (maxDataLength > 15) {
-                // Для большого количества данных - только дни
-                compactLabel = `${mainCompact.split('.')[0]}/${compCompact.split('.')[0]}`; // 01/01
+            // Компактные метки для оси X БЕЗ ГОДА
+            const mainCompact = formatCompactDate(mainDate);
+            const compCompact = formatCompactDate(compDate);
+            
+            // Полные метки для tooltip
+            const fullMainDate = mainDate;
+            const fullCompDate = compDate;
+            
+            let compactLabel = '';
+            let fullLabel = '';
+            
+            if (mainCompact === compCompact) {
+                // Если даты одинаковые (без года)
+                compactLabel = mainCompact;
+                fullLabel = fullMainDate;
             } else {
-                // Для нормального количества - день.месяц через пробел
-                compactLabel = `${mainCompact} ${compCompact}`;
+                // Если разные - используем компактный формат БЕЗ СИМВОЛОВ
+                if (maxDataLength > 15) {
+                    // Для большого количества данных - только дни
+                    compactLabel = `${mainCompact.split('.')[0]}/${compCompact.split('.')[0]}`; // 01/01
+                } else {
+                    // Для нормального количества - день.месяц через пробел
+                    compactLabel = `${mainCompact} ${compCompact}`;
+                }
+                
+                fullLabel = `${fullMainDate} ↔ ${fullCompDate}`;
             }
             
-            fullLabel = `${fullMainDate} ↔ ${fullCompDate}`;
+            labels.push(compactLabel);
+            fullLabels.push(fullLabel);
         }
         
-        labels.push(compactLabel);
-        fullLabels.push(fullLabel);
-    }
-    
-    console.log(`Создано компактных меток без цифр: ${labels.length}`);
-    console.log('Примеры компактных меток:', labels.slice(0, 5));
-    console.log('Примеры полных меток:', fullLabels.slice(0, 5));
-    
-    // СОЗДАЕМ КРАСИВЫЙ ЗАГОЛОВОК
-    let axisTitle = getAxisTitle(state.periodType.replace('-comparison', ''));
-    
-    if (mainPeriod && comparisonPeriod) {
-        // Извлекаем чистые названия периодов
-        const mainLabel = mainPeriod.label
-            .replace(' (основной)', '')
-            .replace(' (сравнение)', '')
-            .trim();
-        const compLabel = comparisonPeriod.label
-            .replace(' (основной)', '')
-            .replace(' (сравнение)', '')
-            .trim();
+        console.log(`Создано компактных меток без цифр: ${labels.length}`);
+        console.log('Примеры компактных меток:', labels.slice(0, 5));
+        console.log('Примеры полных меток:', fullLabels.slice(0, 5));
         
-        // Извлекаем годы из названий периодов
-        const mainYear = mainLabel.match(/\d{4}/)?.[0] || '';
-        const compYear = compLabel.match(/\d{4}/)?.[0] || '';
+        // СОЗДАЕМ КРАСИВЫЙ ЗАГОЛОВОК
+        let axisTitle = getAxisTitle(state.periodType.replace('-comparison', ''));
         
-        if (mainYear && compYear && mainYear !== compYear) {
-            // Красивый заголовок с годами
-            axisTitle = `${axisTitle} — сравнение ${mainYear} с ${compYear}`;
-        } else {
-            // Красивый заголовок с полными названиями
-            const mainShort = mainLabel.length > 20 ? mainLabel.substring(0, 17) + '...' : mainLabel;
-            const compShort = compLabel.length > 20 ? compLabel.substring(0, 17) + '...' : compLabel;
-            axisTitle = `${axisTitle} — сравнение ${mainShort} с ${compShort}`;
+        if (mainPeriod && comparisonPeriod) {
+            // Извлекаем чистые названия периодов
+            const mainLabel = mainPeriod.label
+                .replace(' (основной)', '')
+                .replace(' (сравнение)', '')
+                .trim();
+            const compLabel = comparisonPeriod.label
+                .replace(' (основной)', '')
+                .replace(' (сравнение)', '')
+                .trim();
+            
+            // Извлекаем годы из названий периодов
+            const mainYear = mainLabel.match(/\d{4}/)?.[0] || '';
+            const compYear = compLabel.match(/\d{4}/)?.[0] || '';
+            
+            if (mainYear && compYear && mainYear !== compYear) {
+                // Красивый заголовок с годами
+                axisTitle = `${axisTitle} — сравнение ${mainYear} с ${compYear}`;
+            } else {
+                // Красивый заголовок с полными названиями
+                const mainShort = mainLabel.length > 20 ? mainLabel.substring(0, 17) + '...' : mainLabel;
+                const compShort = compLabel.length > 20 ? compLabel.substring(0, 17) + '...' : compLabel;
+                axisTitle = `${axisTitle} — сравнение ${mainShort} с ${compShort}`;
+            }
         }
-    }
     
-    // Создаем датасеты
-    const datasets = [];
+        // Создаем датасеты
+        const datasets = [];
     
     processedPeriods.forEach((period, periodIndex) => {
         const dataArray = [];
@@ -5923,7 +6157,7 @@ function createDetailedCallsComparisonChart(periodsData) {
                     backgroundColor: 'rgba(0, 0, 0, 0.85)',
                     titleColor: '#ffffff',
                     bodyColor: '#ffffff',
-                    borderColor: 'rgba(255, 255, 255, 0.3)',
+                    borderColor: 'rgba(3, 3, 3, 0.3)',
                     borderWidth: 1,
                     cornerRadius: 6,
                     padding: 12,
@@ -5962,7 +6196,7 @@ function createDetailedCallsComparisonChart(periodsData) {
                             size: 12,
                             family: 'Montserrat'
                         },
-                        color: '#444444'
+                        color: '#000000ff'
                     },
                     grid: {
                         color: 'rgba(0, 0, 0, 0.06)',
@@ -6445,7 +6679,7 @@ function createDetailedCallsComparisonChart(periodsData) {
                             display: false
                         }
                     },
-                                    scales: {
+                scales: {
                         y: {
                             type: 'linear',
                             beginAtZero: true,
@@ -6459,7 +6693,7 @@ function createDetailedCallsComparisonChart(periodsData) {
                                     size: 12,
                                     family: 'Montserrat'
                                 },
-                                color: '#444444'
+                                color: '#000000ff'
                             },
                             grid: {
                                 color: 'rgba(0, 0, 0, 0.06)',
