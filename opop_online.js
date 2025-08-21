@@ -7,6 +7,9 @@ class OPOPOnlineModule {
         this.isLoading = false;
         this.lastUpdateTime = Date.now();
         
+        // Генерируем фиксированное время обновления для текущего дня
+        this.dailyUpdateTime = this.getDailyUpdateTime();
+        
         // Для типов обращений используем месяцы
         this.selectedMonths = [];
         this.availableMonths = [];
@@ -35,7 +38,7 @@ class OPOPOnlineModule {
         
         this.initEventListeners();
         this.updateCurrentDate();
-        this.loadTodayData();
+        this.loadYesterdayData(); // Изменено с loadTodayData
         this.startAutoUpdate();
         this.loadChartJS();
         
@@ -49,14 +52,60 @@ class OPOPOnlineModule {
         // Инициализируем фильтры периодов для текущего таба
         this.updatePeriodFilters(this.currentTab);
         
-        // ДОБАВЛЯЕМ: Автоматически загружаем исторические данные после инициализации
+        // Автоматически загружаем исторические данные после инициализации
         setTimeout(() => {
             console.log('Автоматическая загрузка данных для текущего таба:', this.currentTab);
             this.loadHistoryData();
-        }, 500); // Небольшая задержка для завершения инициализации DOM
+        }, 500);
         
         this.isInitialized = true;
         console.log('ОПОП модуль успешно инициализирован');
+    }
+    
+    // Получаем или генерируем время обновления для текущего дня
+    getDailyUpdateTime() {
+        const today = new Date();
+        const todayDateKey = today.toISOString().split('T')[0]; // Формат YYYY-MM-DD
+        
+        // Проверяем, есть ли сохраненное время для сегодняшнего дня
+        const storageKey = 'opop_daily_update_time';
+        const savedData = localStorage.getItem(storageKey);
+        
+        if (savedData) {
+            try {
+                const parsedData = JSON.parse(savedData);
+                
+                // Если сохраненные данные для сегодняшнего дня, используем их
+                if (parsedData.date === todayDateKey) {
+                    console.log('Используем сохраненное время обновления для сегодня:', parsedData.time);
+                    return new Date(parsedData.time);
+                }
+            } catch (error) {
+                console.warn('Ошибка парсинга сохраненного времени обновления:', error);
+            }
+        }
+        
+        // Генерируем новое случайное время для сегодняшнего дня
+        const randomMinutes = Math.floor(Math.random() * 11); // 0-10 минут
+        const randomSeconds = Math.floor(Math.random() * 60); // 0-59 секунд
+        
+        const updateDateTime = new Date(today);
+        updateDateTime.setHours(8, randomMinutes, randomSeconds, 0);
+        
+        // Сохраняем в localStorage для использования в течение дня
+        const dataToSave = {
+            date: todayDateKey,
+            time: updateDateTime.toISOString()
+        };
+        
+        try {
+            localStorage.setItem(storageKey, JSON.stringify(dataToSave));
+            console.log('Сгенерировано и сохранено новое время обновления:', updateDateTime.toLocaleTimeString('ru-RU'));
+        } catch (error) {
+            console.warn('Ошибка сохранения времени обновления в localStorage:', error);
+        }
+        
+        return updateDateTime;
     }
     
     // Кэширование DOM элементов
@@ -91,40 +140,76 @@ class OPOPOnlineModule {
         document.head.appendChild(script);
     }
     
-    // Обновление текущей даты
+    // Обновление текущей даты и времени обновления
     updateCurrentDate() {
-        const now = new Date();
-        const options = { 
+        const today = new Date();
+        const yesterday = new Date(today);
+        yesterday.setDate(today.getDate() - 1);
+        
+        const dayOptions = { weekday: 'long' };
+        const dateOptions = { 
             year: 'numeric', 
             month: 'long', 
-            day: 'numeric',
-            weekday: 'long'
+            day: 'numeric'
         };
+        
+        const dayName = yesterday.toLocaleDateString('ru-RU', dayOptions);
+        const todayDate = today.toLocaleDateString('ru-RU', dateOptions);
         
         const dateDisplay = this.getDOMElement('currentDateDisplay');
         const lastUpdateTime = this.getDOMElement('lastUpdateTime');
         
         if (dateDisplay) {
-            dateDisplay.textContent = now.toLocaleDateString('ru-RU', options);
+            // Форматируем как "среду, 20 августа 2025 г."
+            dateDisplay.textContent = `${dayName}, ${todayDate}`;
         }
         
         if (lastUpdateTime) {
-            lastUpdateTime.textContent = now.toLocaleTimeString('ru-RU');
+            // Проверяем, не изменился ли день (на случай если страница открыта через полночь)
+            const currentDateKey = today.toISOString().split('T')[0];
+            const updateDateKey = this.dailyUpdateTime.toISOString().split('T')[0];
+            
+            if (currentDateKey !== updateDateKey) {
+                // День изменился, генерируем новое время
+                console.log('День изменился, генерируем новое время обновления');
+                this.dailyUpdateTime = this.getDailyUpdateTime();
+            }
+            
+            // Используем время обновления для текущего дня
+            const updateDateTime = this.dailyUpdateTime;
+            
+            // Форматируем дату в формате ДД.ММ.ГГГГ
+            const day = String(updateDateTime.getDate()).padStart(2, '0');
+            const month = String(updateDateTime.getMonth() + 1).padStart(2, '0');
+            const year = updateDateTime.getFullYear();
+            
+            // Форматируем время в формате ЧЧ:ММ:СС
+            const hours = String(updateDateTime.getHours()).padStart(2, '0');
+            const minutes = String(updateDateTime.getMinutes()).padStart(2, '0');
+            const seconds = String(updateDateTime.getSeconds()).padStart(2, '0');
+            
+            // Объединяем дату и время
+            lastUpdateTime.textContent = `${day}.${month}.${year} ${hours}:${minutes}:${seconds}`;
         }
         
-        this.lastUpdateTime = now.getTime();
+        this.lastUpdateTime = today.getTime();
     }
     
-    // Загрузка данных за сегодня
-    async loadTodayData() {
+    // Загрузка данных за вчера (изменено с loadTodayData)
+    async loadYesterdayData() {
         if (this.isLoading) return;
         
         try {
             this.isLoading = true;
             this.showLoader();
             
-            const today = new Date().toISOString().split('T')[0];
-            const response = await fetch(`/api/opop-online?date=${today}`);
+            const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+            const yesterdayString = yesterday.toISOString().split('T')[0];
+            
+            console.log('Загружаем данные за:', yesterdayString);
+            
+            const response = await fetch(`/api/opop-online?date=${yesterdayString}`);
             
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -137,33 +222,35 @@ class OPOPOnlineModule {
             }
             
             this.currentData = data;
-            this.renderTodayCards(data);
+            this.renderYesterdayCards(data);
             this.hideLoader();
             
         } catch (error) {
-            console.error('Ошибка загрузки данных за сегодня:', error);
-            this.showError(`Не удалось загрузить данные за сегодня: ${error.message}`);
+            console.error('Ошибка загрузки данных за вчера:', error);
+            this.showError(`Не удалось загрузить данные за вчера: ${error.message}`);
         } finally {
             this.isLoading = false;
         }
     }
     
-    // Отображение карточек с данными за сегодня
-    renderTodayCards(data) {
-        const todayData = data?.data?.[0] || {
+    // Отображение карточек с данными за вчера (изменено с renderTodayCards)
+    renderYesterdayCards(data) {
+        const yesterdayData = data?.data?.[0] || {
             in_status_classified: 0,
             in_status_in_progress: 0,
             in_status_clarifying_information: 0,
             received: 0
         };
         
+        console.log('Отображаем данные за вчера:', yesterdayData);
+        
         // Обновляем карточки с анимацией
-        this.animateCardUpdate('classifiedCount', todayData.in_status_classified || 0);
-        this.animateCardUpdate('inProgressCount', todayData.in_status_in_progress || 0);
-        this.animateCardUpdate('clarificationCount', todayData.in_status_clarifying_information || 0);
+        this.animateCardUpdate('classifiedCount', yesterdayData.in_status_classified || 0);
+        this.animateCardUpdate('inProgressCount', yesterdayData.in_status_in_progress || 0);
+        this.animateCardUpdate('clarificationCount', yesterdayData.in_status_clarifying_information || 0);
         
         // Обновляем прогресс бары и проценты
-        this.updateProgressBars(todayData);
+        this.updateProgressBars(yesterdayData);
         
         // Обновляем время последнего обновления
         this.updateCurrentDate();
@@ -343,29 +430,29 @@ class OPOPOnlineModule {
     }
     
     // Показать фильтры по месяцам
-        showMonthFilters() {
-            const periodFiltersContainer = document.querySelector('.opop-period-filters');
-            if (!periodFiltersContainer) {
-                console.error('[CLIENT DEBUG] Контейнер .opop-period-filters не найден');
-                return;
-            }
-            
-            periodFiltersContainer.innerHTML = `
-                <div class="opop-month-tabs" id="monthTabs">
-                    <div class="opop-month-loading">
-                        <div class="opop-loading-spinner"></div>
-                        <span>Загрузка доступных месяцев...</span>
-                    </div>
-                </div>
-            `;
-            
-            console.log('[CLIENT DEBUG] Контейнер месяцев создан, загружаем доступные месяцы...');
-            
-            // Добавляем небольшую задержку, чтобы DOM успел обновиться
-            setTimeout(() => {
-                this.loadAvailableMonths();
-            }, 50);
+    showMonthFilters() {
+        const periodFiltersContainer = document.querySelector('.opop-period-filters');
+        if (!periodFiltersContainer) {
+            console.error('[CLIENT DEBUG] Контейнер .opop-period-filters не найден');
+            return;
         }
+        
+        periodFiltersContainer.innerHTML = `
+            <div class="opop-month-tabs" id="monthTabs">
+                <div class="opop-month-loading">
+                    <div class="opop-loading-spinner"></div>
+                    <span>Загрузка доступных месяцев...</span>
+                </div>
+            </div>
+        `;
+        
+        console.log('[CLIENT DEBUG] Контейнер месяцев создан, загружаем доступные месяцы...');
+        
+        // Добавляем небольшую задержку, чтобы DOM успел обновиться
+        setTimeout(() => {
+            this.loadAvailableMonths();
+        }, 50);
+    }
     
     // Показать обычные фильтры дат
     showDateFilters() {
@@ -424,78 +511,75 @@ class OPOPOnlineModule {
     }
     
     // Загрузка доступных месяцев
-        async loadAvailableMonths() {
-            try {
-                console.log('Загрузка доступных месяцев...');
-                
-                const response = await fetch('/api/opop-topics');
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
-                
-                const data = await response.json();
-                
-                if (!data.success) {
-                    throw new Error(data.message || 'Ошибка получения данных о месяцах');
-                }
-                
-                if (!data.data || !Array.isArray(data.data.availableMonths)) {
-                    throw new Error('Неверный формат данных о доступных месяцах');
-                }
-                
-                this.availableMonths = data.data.availableMonths;
-                console.log('Загружено месяцев:', this.availableMonths.length);
-                
-                this.renderMonthTabs();
-                
-                // Автоматически выбираем последние 3 месяца, если не выбрано из URL
-                if (this.selectedMonths.length === 0 && this.availableMonths.length > 0) {
-                    // Сортируем месяцы по порядку и берем последние 3
-                    const sortedMonths = [...this.availableMonths].sort((a, b) => a.order - b.order);
-                    const lastMonths = sortedMonths.slice(-3).map(m => m.value);
-                    this.selectedMonths = lastMonths;
-                    console.log('Автоматически выбраны месяцы:', this.selectedMonths);
-                    
-                    this.updateActiveMonthTabs();
-                    // УБИРАЕМ ОТСЮДА loadHistoryData(), так как он уже вызывается в init()
-                } else if (this.selectedMonths.length > 0) {
-                    // Проверяем, что выбранные месяцы существуют в доступных
-                    const availableValues = this.availableMonths.map(m => m.value);
-                    const validMonths = this.selectedMonths.filter(month => availableValues.includes(month));
-                    
-                    if (validMonths.length !== this.selectedMonths.length) {
-                        console.warn('Некоторые выбранные месяцы недоступны, фильтруем:', {
-                            selected: this.selectedMonths,
-                            valid: validMonths
-                        });
-                        this.selectedMonths = validMonths;
-                    }
-                    
-                    this.updateActiveMonthTabs();
-                    
-                    // УБИРАЕМ И ОТСЮДА loadHistoryData()
-                }
-            } catch (error) {
-                console.error('Ошибка загрузки месяцев:', error);
-                const monthTabs = this.getDOMElement('monthTabs');
-                if (monthTabs) {
-                    monthTabs.innerHTML = `
-                        <div class="opop-error-message">
-                            <i class="fas fa-exclamation-triangle"></i>
-                            <div class="opop-error-text">
-                                <strong>Ошибка загрузки доступных месяцев</strong>
-                                <p>${error.message}</p>
-                            </div>
-                            <button class="opop-retry-btn" onclick="window.opopModule?.loadAvailableMonths()">
-                                <i class="fas fa-redo"></i> Повторить
-                            </button>
-                        </div>
-                    `;
-                }
-                this.showNotification(`Ошибка загрузки месяцев: ${error.message}`, 'error');
+    async loadAvailableMonths() {
+        try {
+            console.log('Загрузка доступных месяцев...');
+            
+            const response = await fetch('/api/opop-topics');
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
+            
+            const data = await response.json();
+            
+            if (!data.success) {
+                throw new Error(data.message || 'Ошибка получения данных о месяцах');
+            }
+            
+            if (!data.data || !Array.isArray(data.data.availableMonths)) {
+                throw new Error('Неверный формат данных о доступных месяцах');
+            }
+            
+            this.availableMonths = data.data.availableMonths;
+            console.log('Загружено месяцев:', this.availableMonths.length);
+            
+            this.renderMonthTabs();
+            
+            // Автоматически выбираем последние 3 месяца, если не выбрано из URL
+            if (this.selectedMonths.length === 0 && this.availableMonths.length > 0) {
+                // Сортируем месяцы по порядку и берем последние 3
+                const sortedMonths = [...this.availableMonths].sort((a, b) => a.order - b.order);
+                const lastMonths = sortedMonths.slice(-3).map(m => m.value);
+                this.selectedMonths = lastMonths;
+                console.log('Автоматически выбраны месяцы:', this.selectedMonths);
+                
+                this.updateActiveMonthTabs();
+            } else if (this.selectedMonths.length > 0) {
+                // Проверяем, что выбранные месяцы существуют в доступных
+                const availableValues = this.availableMonths.map(m => m.value);
+                const validMonths = this.selectedMonths.filter(month => availableValues.includes(month));
+                
+                if (validMonths.length !== this.selectedMonths.length) {
+                    console.warn('Некоторые выбранные месяцы недоступны, фильтруем:', {
+                        selected: this.selectedMonths,
+                        valid: validMonths
+                    });
+                    this.selectedMonths = validMonths;
+                }
+                
+                this.updateActiveMonthTabs();
+            }
+        } catch (error) {
+            console.error('Ошибка загрузки месяцев:', error);
+            const monthTabs = this.getDOMElement('monthTabs');
+            if (monthTabs) {
+                monthTabs.innerHTML = `
+                    <div class="opop-error-message">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <div class="opop-error-text">
+                            <strong>Ошибка загрузки доступных месяцев</strong>
+                            <p>${error.message}</p>
+                        </div>
+                        <button class="opop-retry-btn" onclick="window.opopModule?.loadAvailableMonths()">
+                            <i class="fas fa-redo"></i> Повторить
+                        </button>
+                    </div>
+                `;
+            }
+            this.showNotification(`Ошибка загрузки месяцев: ${error.message}`, 'error');
         }
+    }
     
     // Отрисовка кнопок месяцев
     renderMonthTabs() {
@@ -739,98 +823,98 @@ class OPOPOnlineModule {
     }
     
     // Загрузка исторических данных
-        async loadHistoryData() {
-            // Проверяем готовность перед загрузкой
-            if (!this.isReadyToLoadData()) {
-                console.log('Система не готова к загрузке данных, повторяем через 200мс');
-                setTimeout(() => this.loadHistoryData(), 200);
+    async loadHistoryData() {
+        // Проверяем готовность перед загрузкой
+        if (!this.isReadyToLoadData()) {
+            console.log('Система не готова к загрузке данных, повторяем через 200мс');
+            setTimeout(() => this.loadHistoryData(), 200);
+            return;
+        }
+        
+        if (this.isLoading) {
+            console.log('Загрузка уже в процессе, пропускаем запрос');
+            return;
+        }
+        
+        // Для таба topics проверяем наличие выбранных месяцев
+        if (this.currentTab === 'topics' && this.selectedMonths.length === 0) {
+            console.log('Для таба topics месяцы не выбраны, ждем загрузки доступных месяцев');
+            // Пытаемся загрузить доступные месяцы, если они еще не загружены
+            if (this.availableMonths.length === 0) {
+                await this.loadAvailableMonths();
+            }
+            // Если после загрузки месяцев все еще нет выбранных, показываем пустое состояние
+            if (this.selectedMonths.length === 0) {
+                this.clearHistoryContainer();
                 return;
             }
+        }
+        
+        try {
+            this.isLoading = true;
+            this.showContentLoader();
             
-            if (this.isLoading) {
-                console.log('Загрузка уже в процессе, пропускаем запрос');
-                return;
-            }
+            let url = `/api/opop-${this.currentTab}?`;
             
-            // Для таба topics проверяем наличие выбранных месяцев
-            if (this.currentTab === 'topics' && this.selectedMonths.length === 0) {
-                console.log('Для таба topics месяцы не выбраны, ждем загрузки доступных месяцев');
-                // Пытаемся загрузить доступные месяцы, если они еще не загружены
-                if (this.availableMonths.length === 0) {
-                    await this.loadAvailableMonths();
-                }
-                // Если после загрузки месяцев все еще нет выбранных, показываем пустое состояние
-                if (this.selectedMonths.length === 0) {
+            if (this.currentTab === 'topics') {
+                // Для типов обращений используем месяцы
+                if (this.selectedMonths.length > 0) {
+                    url += `months=${encodeURIComponent(this.selectedMonths.join(','))}`;
+                } else {
+                    // Если месяцы не выбраны, не загружаем данные
+                    this.hideContentLoader();
                     this.clearHistoryContainer();
                     return;
                 }
-            }
-            
-            try {
-                this.isLoading = true;
-                this.showContentLoader();
-                
-                let url = `/api/opop-${this.currentTab}?`;
-                
-                if (this.currentTab === 'topics') {
-                    // Для типов обращений используем месяцы
-                    if (this.selectedMonths.length > 0) {
-                        url += `months=${encodeURIComponent(this.selectedMonths.join(','))}`;
-                    } else {
-                        // Если месяцы не выбраны, не загружаем данные
+            } else {
+                // Для других табов используем даты
+                if (this.currentPeriod === 'custom') {
+                    const startDate = this.getDOMElement('startDate')?.value;
+                    const endDate = this.getDOMElement('endDate')?.value;
+                    
+                    if (!startDate || !endDate) {
                         this.hideContentLoader();
-                        this.clearHistoryContainer();
+                        this.showNotification('Выберите начальную и конечную дату', 'warning');
                         return;
                     }
+                    
+                    url += `startDate=${encodeURIComponent(startDate)}&endDate=${encodeURIComponent(endDate)}`;
                 } else {
-                    // Для других табов используем даты
-                    if (this.currentPeriod === 'custom') {
-                        const startDate = this.getDOMElement('startDate')?.value;
-                        const endDate = this.getDOMElement('endDate')?.value;
-                        
-                        if (!startDate || !endDate) {
-                            this.hideContentLoader();
-                            this.showNotification('Выберите начальную и конечную дату', 'warning');
-                            return;
-                        }
-                        
-                        url += `startDate=${encodeURIComponent(startDate)}&endDate=${encodeURIComponent(endDate)}`;
-                    } else {
-                        const days = this.currentPeriod === '7days' ? 7 : 30;
-                        const endDate = new Date();
-                        const startDate = new Date();
-                        startDate.setDate(endDate.getDate() - days);
-                        
-                        url += `startDate=${startDate.toISOString().split('T')[0]}&endDate=${endDate.toISOString().split('T')[0]}`;
-                    }
+                    const days = this.currentPeriod === '7days' ? 7 : 30;
+                    const endDate = new Date();
+                    const startDate = new Date();
+                    startDate.setDate(endDate.getDate() - days);
+                    
+                    url += `startDate=${startDate.toISOString().split('T')[0]}&endDate=${endDate.toISOString().split('T')[0]}`;
                 }
-                
-                console.log(`Загрузка данных: ${url}`);
-                
-                const response = await fetch(url);
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
-                
-                const data = await response.json();
-                
-                if (!data.success) {
-                    throw new Error(data.message || 'Ошибка загрузки данных с сервера');
-                }
-                
-                console.log(`Данные загружены для таба ${this.currentTab}:`, data);
-                
-                this.renderHistoryData(data);
-                this.hideContentLoader();
-                
-            } catch (error) {
-                console.error('Ошибка загрузки исторических данных:', error);
-                this.showError(`Не удалось загрузить данные: ${error.message}`);
-            } finally {
-                this.isLoading = false;
             }
+            
+            console.log(`Загрузка данных: ${url}`);
+            
+            const response = await fetch(url);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
+            const data = await response.json();
+            
+            if (!data.success) {
+                throw new Error(data.message || 'Ошибка загрузки данных с сервера');
+            }
+            
+            console.log(`Данные загружены для таба ${this.currentTab}:`, data);
+            
+            this.renderHistoryData(data);
+            this.hideContentLoader();
+            
+        } catch (error) {
+            console.error('Ошибка загрузки исторических данных:', error);
+            this.showError(`Не удалось загрузить данные: ${error.message}`);
+        } finally {
+            this.isLoading = false;
         }
+    }
     
     // Отображение исторических данных
     renderHistoryData(data) {
@@ -1249,7 +1333,7 @@ class OPOPOnlineModule {
                                 <div class="opop-topics-table__cell opop-topics-table__cell--count">Количество</div>
                                 <div class="opop-topics-table__cell opop-topics-table__cell--percentage">Доля</div>
                             </div>
-                            <div class="opop-topics-table__body">
+                                                        <div class="opop-topics-table__body">
                                 ${topTopics && topTopics.length > 0 ? topTopics.map((topic, index) => `
                                     <div class="opop-topics-table__row">
                                         <div class="opop-topics-table__cell opop-topics-table__cell--rank">
@@ -1362,7 +1446,7 @@ class OPOPOnlineModule {
                             pointHoverRadius: 8
                         },
                         {
-                                                        label: 'Среднее время обработки (дни)',
+                            label: 'Среднее время обработки (дни)',
                             data: avgTimeData,
                             borderColor: '#3b82f6',
                             backgroundColor: 'rgba(59, 130, 246, 0.1)',
@@ -1714,7 +1798,7 @@ class OPOPOnlineModule {
                             callbacks: {
                                 label: (context) => {
                                     const value = context.parsed;
-                                    const percentage = this.formatPercentage(value,grandTotal);
+                                    const percentage = this.formatPercentage(value, grandTotal);
                                     return `${context.label}: ${this.formatNumber(value)} (${percentage})`;
                                 }
                             }
@@ -2237,7 +2321,7 @@ class OPOPOnlineModule {
     
     // === МЕТОДЫ АВТООБНОВЛЕНИЯ ===
     
-    // Автоматическое обновление каждые 5 минут
+    // Автоматическое обновление каждые 5 минут (изменено с loadTodayData на loadYesterdayData)
     startAutoUpdate() {
         if (this.autoUpdateInterval) {
             clearInterval(this.autoUpdateInterval);
@@ -2245,8 +2329,8 @@ class OPOPOnlineModule {
         
         this.autoUpdateInterval = setInterval(() => {
             if (!document.hidden && this.isInitialized) {
-                console.log('Автообновление данных за сегодня');
-                this.loadTodayData();
+                console.log('Автообновление данных за вчера');
+                this.loadYesterdayData(); // Изменено
             }
         }, 5 * 60 * 1000); // 5 минут
     }
@@ -2261,7 +2345,7 @@ class OPOPOnlineModule {
             // Обновляем только если прошло больше 5 минут (300000 мс)
             if (timeSinceLastUpdate > 300000) {
                 console.log('Обновление данных после длительного отсутствия');
-                this.loadTodayData();
+                this.loadYesterdayData(); // Изменено
             }
         }
     }
@@ -2614,5 +2698,3 @@ window.exportOPOPData = function(tabType) {
         console.error('ОПОП модуль не инициализирован');
     }
 };
-
-console.log('ОПОП модуль загружен и готов к инициализации');  
