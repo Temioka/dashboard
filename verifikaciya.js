@@ -14,11 +14,11 @@ class VerificationDashboard {
         this.isLoading = false;
         this.animationQueue = [];
         
-        // ДОБАВЛЯЕМ: Кеш для стабильных данных
+        // Кеш для стабильных данных
         this.dataCache = new Map();
         this.seedCache = new Map();
         
-        // Конфигурация анимаций
+        // ИСПРАВЛЕННАЯ конфигурация
         this.config = {
             colors: {
                 primary: '#ff6b35',
@@ -36,44 +36,13 @@ class VerificationDashboard {
                 fastDuration: 300,
                 slowDuration: 800
             },
-            apiEndpoint: '/api/verification-stats'
+            // ИСПРАВЛЕНИЕ 1: Правильный API endpoint
+            apiEndpoint: '/api/verification-stats',
+            useRealData: true,
+            apiTimeout: 10000
         };
         
         this.initialize();
-    }
-
-    // НОВЫЙ МЕТОД: Генерация стабильного seed
-    generateStableSeed(period, date = null) {
-        const baseDate = date || new Date().toISOString().split('T')[0];
-        const key = `${period}-${baseDate}`;
-        
-        if (this.seedCache.has(key)) {
-            return this.seedCache.get(key);
-        }
-        
-        // Генерируем стабильный hash на основе строки
-        let hash = 0;
-        for (let i = 0; i < key.length; i++) {
-            const char = key.charCodeAt(i);
-            hash = ((hash << 5) - hash) + char;
-            hash = hash & hash; // Конвертируем в 32-битное число
-        }
-        
-        const seed = Math.abs(hash) % 10000;
-        this.seedCache.set(key, seed);
-        return seed;
-    }
-    
-    // НОВЫЙ МЕТОД: Стабильные случайные числа
-    seededRandom(seed, min, max, decimals = 0) {
-        // Простой генератор псевдослучайных чисел
-        const x = Math.sin(seed) * 10000;
-        const random = x - Math.floor(x);
-        
-        const value = random * (max - min) + min;
-        return decimals > 0 ? 
-            Math.round(value * Math.pow(10, decimals)) / Math.pow(10, decimals) : 
-            Math.floor(value);
     }
     
     // ==========================================
@@ -82,17 +51,51 @@ class VerificationDashboard {
     
     async initialize() {
         try {
+            console.log('🚀 Инициализация дашборда верификации...');
+            
             this.setupAnimationStyles();
             this.applyTableStyles();
+            this.applyCardLayoutStyles();
             this.setupEventListeners();
             this.startTimeDisplay();
             
-            // Анимированная инициализация
             await this.animateInitialization();
+            
+            // Проверяем доступность API
+            const apiAvailable = await this.testApiConnection();
+            if (!apiAvailable) {
+                console.warn('⚠️ API недоступен, используем тестовые данные');
+                this.config.useRealData = false;
+            }
+            
             await this.loadInitialData();
             
         } catch (error) {
-            console.error('Ошибка инициализации:', error);
+            console.error('❌ Ошибка инициализации:', error);
+        }
+    }
+
+    async testApiConnection() {
+        try {
+            console.log('🔍 Проверяем подключение к API...');
+            const response = await fetch('/api/verification-health', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (response.ok) {
+                const result = await response.json();
+                console.log('✅ API доступен:', result);
+                return result.success;
+            } else {
+                console.warn('⚠️ API недоступен, статус:', response.status);
+                return false;
+            }
+        } catch (error) {
+            console.warn('⚠️ Ошибка подключения к API:', error.message);
+            return false;
         }
     }
     
@@ -1473,7 +1476,7 @@ class VerificationDashboard {
     }
     
     setupEventListeners() {
-        // Переключение вкладок с анимацией
+        // Переключение вкладок
         document.querySelectorAll('.verif-nav-tab').forEach(tab => {
             tab.addEventListener('click', async (e) => {
                 e.preventDefault();
@@ -1556,15 +1559,7 @@ class VerificationDashboard {
                 day: 'numeric',
                 timeZone: 'Europe/Moscow'
             };
-            
-            // Анимируем обновление времени
-            dateElement.style.transition = 'all 0.3s ease';
-            dateElement.style.transform = 'scale(0.95)';
-            
-            setTimeout(() => {
-                dateElement.textContent = now.toLocaleDateString('ru-RU', options);
-                dateElement.style.transform = 'scale(1)';
-            }, 150);
+            dateElement.textContent = now.toLocaleDateString('ru-RU', options);
         }
         this.timestamp = this.getCurrentTimestamp();
     }
@@ -1581,38 +1576,9 @@ class VerificationDashboard {
         if (this.currentTab === tabName || this.isLoading) return;
         
         try {
-            // Анимация выхода текущей панели
-            const currentPanel = document.getElementById(`panel-${this.currentTab}`);
-            if (currentPanel) {
-                currentPanel.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
-                currentPanel.style.opacity = '0';
-                currentPanel.style.transform = 'translateX(-20px) scale(0.98)';
-            }
-            
-            await this.waitFor(200);
-            
             this.updateActiveTab(tabName);
             this.currentTab = tabName;
-            
-            // Анимация входа новой панели
-            const newPanel = document.getElementById(`panel-${tabName}`);
-            if (newPanel) {
-                newPanel.classList.add('verif-tab-switching');
-                newPanel.style.opacity = '0';
-                newPanel.style.transform = 'translateX(20px) scale(0.98)';
-                
-                await this.waitFor(100);
-                
-                newPanel.style.transition = 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
-                newPanel.style.opacity = '1';
-                newPanel.style.transform = 'translateX(0) scale(1)';
-            }
-            
-            await this.waitFor(200);
             await this.loadTabData(tabName);
-            
-            setTimeout(() => this.createPendingCharts(), 400);
-            
         } catch (error) {
             console.error('Ошибка переключения вкладки:', error);
         }
@@ -1622,48 +1588,17 @@ class VerificationDashboard {
         if (this.currentPeriod === period || this.isLoading) return;
         
         try {
-            // ОЧИЩАЕМ КЕШ при смене периода
-            console.log(`🧹 Очищаем кеш при смене периода с ${this.currentPeriod} на ${period}`);
             this.dataCache.clear();
-            
-            // Анимация кнопок периода
-            const buttons = document.querySelectorAll('.verif-period-btn');
-            buttons.forEach(btn => {
-                btn.style.transition = 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)';
-                if (btn.dataset.period === period) {
-                    btn.style.transform = 'scale(1.05)';
-                    setTimeout(() => {
-                        btn.style.transform = 'scale(1)';
-                    }, 200);
-                }
-            });
-            
             this.updateActivePeriod(period);
             
-            // Управление пользовательским периодом
             const customSection = document.getElementById('verif-custom-period');
             if (customSection) {
                 if (period === 'custom') {
                     customSection.style.display = 'block';
-                    customSection.style.opacity = '0';
-                    customSection.style.transform = 'translateY(-10px)';
-                    
-                    setTimeout(() => {
-                        customSection.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
-                        customSection.style.opacity = '1';
-                        customSection.style.transform = 'translateY(0)';
-                    }, 50);
-                    
                     this.setupDateInputs();
                     return;
                 } else {
-                    customSection.style.transition = 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)';
-                    customSection.style.opacity = '0';
-                    customSection.style.transform = 'translateY(-10px)';
-                    
-                    setTimeout(() => {
-                        customSection.style.display = 'none';
-                    }, 200);
+                    customSection.style.display = 'none';
                 }
             }
             
@@ -1676,26 +1611,15 @@ class VerificationDashboard {
     }
     
     updateActiveTab(tabName) {
-        // Анимированное обновление вкладок
         document.querySelectorAll('.verif-nav-tab').forEach(tab => {
-            tab.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
             tab.classList.remove('active');
-            tab.setAttribute('aria-selected', 'false');
         });
         
         const activeTab = document.querySelector(`[data-tab="${tabName}"]`);
         if (activeTab) {
             activeTab.classList.add('active');
-            activeTab.setAttribute('aria-selected', 'true');
-            
-            // Эффект активации
-            activeTab.style.transform = 'scale(1.02)';
-            setTimeout(() => {
-                activeTab.style.transform = 'scale(1)';
-            }, 200);
         }
         
-        // Обновление панелей контента
         document.querySelectorAll('.verif-panel-orange').forEach(panel => {
             panel.classList.remove('active');
             panel.style.display = 'none';
@@ -1729,18 +1653,6 @@ class VerificationDashboard {
             
             fromInput.value = weekAgo.toISOString().split('T')[0];
             toInput.value = today.toISOString().split('T')[0];
-            
-            // Анимация появления полей
-            [fromInput, toInput].forEach((input, index) => {
-                input.style.opacity = '0';
-                input.style.transform = 'translateY(10px)';
-                
-                setTimeout(() => {
-                    input.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
-                    input.style.opacity = '1';
-                    input.style.transform = 'translateY(0)';
-                }, index * 100);
-            });
         }
     }
     
@@ -1781,23 +1693,27 @@ class VerificationDashboard {
         this.showAnimatedLoading(tabName, true);
         
         try {
-            // Попытка загрузки реальных данных
+            console.log(`🔄 Загружаем данные для вкладки: ${tabName}, период: ${this.currentPeriod}`);
+            
             let data;
-            try {
-                data = await this.fetchRealData(tabName);
-            } catch (apiError) {
-                console.warn('API недоступен, используем моковые данные:', apiError);
+            
+            if (this.config.useRealData) {
+                try {
+                    data = await this.fetchRealData(tabName);
+                    console.log(`✅ Получены данные из API:`, data);
+                } catch (apiError) {
+                    console.warn('❌ Ошибка API, переключаемся на тестовые данные:', apiError.message);
+                    data = this.generateMockData(tabName);
+                }
+            } else {
                 data = this.generateMockData(tabName);
             }
             
-            // Кэширование данных
             this.data.set(tabName, data);
-            
-            // Анимированное обновление интерфейса
             await this.animatedContentUpdate(tabName, data);
             
         } catch (error) {
-            console.error('Критическая ошибка загрузки данных:', error);
+            console.error('❌ Критическая ошибка загрузки данных:', error);
             this.handleLoadingError(tabName);
         } finally {
             this.showAnimatedLoading(tabName, false);
@@ -1815,9 +1731,11 @@ class VerificationDashboard {
         };
         
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000);
+        const timeoutId = setTimeout(() => controller.abort(), this.config.apiTimeout);
         
         try {
+            console.log(`🌐 Запрос к API: ${url}`);
+            
             const response = await fetch(url, { 
                 headers,
                 method: 'GET',
@@ -1831,100 +1749,133 @@ class VerificationDashboard {
             }
             
             const result = await response.json();
+            console.log('📊 Получен ответ API:', result);
             
             if (!result.success || !result.data) {
                 throw new Error(result.message || 'Некорректный ответ сервера');
             }
             
-            return result.data;
+            return this.processApiData(result.data, result.metadata);
             
         } catch (error) {
             clearTimeout(timeoutId);
+            
             if (error.name === 'AbortError') {
                 throw new Error('Превышено время ожидания ответа сервера');
             }
+            
+            console.error('❌ Ошибка API запроса:', error);
             throw error;
         }
     }
-    
-    generateMockData(tabName) {
-        const period = this.currentPeriod;
-        const cacheKey = `${tabName}-${period}`;
+
+    processApiData(apiData, metadata) {
+        console.log('🔄 Обрабатываем данные от сервера:', apiData);
         
-        // Проверяем кеш
-        if (this.dataCache.has(cacheKey)) {
-            console.log(`🔄 Используем кешированные данные для ${cacheKey}`);
-            return this.dataCache.get(cacheKey);
-        }
-        
-        const baseSeed = this.generateStableSeed(period);
-        const periodDays = this.getPeriodDays();
-        
-        console.log(`🎲 Генерируем стабильные данные для ${cacheKey} с seed: ${baseSeed}`);
-        
-        // Генерируем стабильные базовые данные
-        const baseData = {
-            totalCount: this.seededRandom(baseSeed + 1, 5000, 15000),
-            totalAmount: this.seededRandom(baseSeed + 2, 2000000, 8000000),
-            confirmedCount: this.seededRandom(baseSeed + 3, 2000, 8000),
-            gisAmount: this.seededRandom(baseSeed + 4, 1000000, 4000000),
+        // Обрабатываем данные согласно структуре сервера
+        const processedData = {
+            // Основные поля из API
+            totalCount: parseInt(apiData.totalCount) || 0,
+            totalAmount: parseFloat(apiData.totalAmount) || 0,
+            confirmedCount: parseInt(apiData.confirmedCount) || 0,
+            gisAmount: parseFloat(apiData.gisAmount) || 0,
+            confirmationRate: parseFloat(apiData.confirmationRate) || 0,
             
-            // Стабильные данные для графиков
-            monthlyData: this.generateStableChartData('monthly', 6, baseSeed + 10),
-            dailyData: this.generateStableChartData('daily', periodDays, baseSeed + 20),
+            // Поля для подтвержденных поездок
+            confirmedAmount: parseFloat(apiData.confirmedAmount) || 0,
+            paidCount: parseInt(apiData.paidCount) || 0,
+            paidAmount: parseFloat(apiData.paidAmount) || 0,
+            paidPercentage: parseFloat(apiData.paidPercentage) || 0,
+            avgTime: parseFloat(apiData.avgTime) || 0,
             
-            // Стабильные тренды
-            countTrend: this.generateStableTrendData(baseSeed + 30),
-            amountTrend: this.generateStableTrendData(baseSeed + 31),
-            confirmedTrend: this.generateStableTrendData(baseSeed + 32),
-            rateTrend: this.generateStableTrendData(baseSeed + 33),
+            // Поля для ВПН
+            vpnCount: parseInt(apiData.vpnCount) || 0,
+            totalVpn: parseFloat(apiData.totalVpn) || 0,
+            corrected: parseInt(apiData.corrected) || 0,
+            correctedPercentage: parseFloat(apiData.correctedPercentage) || 0,
+            vpnRemoved: parseInt(apiData.vpnRemoved) || 0,
+            vpnRemovedAmount: parseFloat(apiData.vpnRemovedAmount) || 0,
             
-            // Стабильные данные таблицы
-            tableData: this.generateStableTableData(tabName, Math.min(periodDays, 30), baseSeed + 40)
+            // Данные графиков
+            monthlyData: this.processChartDataFromApi(apiData.monthlyData),
+            dailyData: this.processChartDataFromApi(apiData.dailyData),
+            sourcesData: apiData.sourcesData || null,
+            
+            // Табличные данные
+            tableData: Array.isArray(apiData.tableData) ? apiData.tableData : [],
+            
+            // Тренды для мини-графиков
+            countTrend: this.processTrendFromApi(apiData.countTrend),
+            amountTrend: this.processTrendFromApi(apiData.amountTrend),
+            confirmedTrend: this.processTrendFromApi(apiData.confirmedTrend),
+            rateTrend: this.processTrendFromApi(apiData.rateTrend),
+            percentageTrend: this.processTrendFromApi(apiData.percentageTrend),
+            timeTrend: this.processTrendFromApi(apiData.timeTrend),
+            correctedTrend: this.processTrendFromApi(apiData.correctedTrend),
+            removedTrend: this.processTrendFromApi(apiData.removedTrend),
+            removedAmountTrend: this.processTrendFromApi(apiData.removedAmountTrend)
         };
         
-        // Специфичные данные для каждой вкладки
-        let finalData;
-        switch (tabName) {
-            case 'confirmed':
-                finalData = {
-                    ...baseData,
-                    confirmedAmount: this.seededRandom(baseSeed + 5, 1500000, 5000000),
-                    paidCount: this.seededRandom(baseSeed + 6, 1500, 6000),
-                    paidAmount: this.seededRandom(baseSeed + 7, 1200000, 4500000),
-                    avgTime: this.seededRandom(baseSeed + 8, 2, 48, 1),
-                    sourcesData: this.generateStableSourcesData(baseSeed + 50),
-                    percentageTrend: this.generateStableTrendData(baseSeed + 34),
-                    timeTrend: this.generateStableTrendData(baseSeed + 35)
-                };
-                break;
-                
-            case 'vpn':
-                finalData = {
-                    ...baseData,
-                    vpnCount: this.seededRandom(baseSeed + 9, 500, 3000),
-                    totalVpn: this.seededRandom(baseSeed + 10, 500000, 2000000),
-                    corrected: this.seededRandom(baseSeed + 11, 200, 1500),
-                    vpnRemoved: this.seededRandom(baseSeed + 12, 100, 800),
-                    vpnRemovedAmount: this.seededRandom(baseSeed + 13, 50000, 500000),
-                    correctedTrend: this.generateStableTrendData(baseSeed + 36),
-                    removedTrend: this.generateStableTrendData(baseSeed + 37),
-                    removedAmountTrend: this.generateStableTrendData(baseSeed + 38)
-                };
-                break;
-                
-            default:
-                finalData = baseData;
-        }
-        
-        // Кешируем данные
-        this.dataCache.set(cacheKey, finalData);
-        console.log(`💾 Данные закешированы для ${cacheKey}`);
-        
-        return finalData;
+        console.log('✅ Данные обработаны:', processedData);
+        return processedData;
     }
 
-    // НОВЫЙ МЕТОД: Стабильная генерация данных графиков
+    processChartDataFromApi(chartData) {
+        if (!chartData || !chartData.labels || !chartData.datasets) {
+            return null;
+        }
+        
+        return {
+            labels: chartData.labels,
+            datasets: chartData.datasets.map(dataset => ({
+                ...dataset,
+                data: Array.isArray(dataset.data) ? dataset.data : []
+            }))
+        };
+    }
+     
+    processTrendFromApi(trendData) {
+        if (!trendData || !Array.isArray(trendData.values)) {
+            return {
+                labels: Array.from({length: 7}, (_, i) => `${i + 1}`),
+                values: Array.from({length: 7}, () => 0)
+            };
+        }
+        
+        return trendData;
+    }
+
+    // Вспомогательные методы
+    generateStableSeed(period, date = null) {
+        const baseDate = date || new Date().toISOString().split('T')[0];
+        const key = `${period}-${baseDate}`;
+        
+        if (this.seedCache.has(key)) {
+            return this.seedCache.get(key);
+        }
+        
+        let hash = 0;
+        for (let i = 0; i < key.length; i++) {
+            const char = key.charCodeAt(i);
+            hash = ((hash << 5) - hash) + char;
+            hash = hash & hash;
+        }
+        
+        const seed = Math.abs(hash) % 10000;
+        this.seedCache.set(key, seed);
+        return seed;
+    }
+
+    seededRandom(seed, min, max, decimals = 0) {
+        const x = Math.sin(seed) * 10000;
+        const random = x - Math.floor(x);
+        
+        const value = random * (max - min) + min;
+        return decimals > 0 ? 
+            Math.round(value * Math.pow(10, decimals)) / Math.pow(10, decimals) : 
+            Math.floor(value);
+    }
+
     generateStableChartData(type, periods, seed) {
         const labels = [];
         const data = [];
@@ -1962,8 +1913,8 @@ class VerificationDashboard {
             }]
         };
     }
-    
-    // НОВЫЙ МЕТОД: Стабильная генерация трендов
+
+
     generateStableTrendData(seed) {
         return {
             labels: Array.from({length: 7}, (_, i) => `День ${i + 1}`),
@@ -1971,9 +1922,7 @@ class VerificationDashboard {
         };
     }
     
-    // НОВЫЙ МЕТОД: Стабильная генерация источников данных
     generateStableSourcesData(seed) {
-        // Генерируем проценты так, чтобы они в сумме давали ~100%
         const values = [
             this.seededRandom(seed + 1, 35, 50),
             this.seededRandom(seed + 2, 20, 30),
@@ -1982,7 +1931,6 @@ class VerificationDashboard {
             this.seededRandom(seed + 5, 2, 8)
         ];
         
-        // Нормализуем до 100%
         const sum = values.reduce((a, b) => a + b, 0);
         const normalized = values.map(v => Math.round((v / sum) * 100));
         
@@ -2003,7 +1951,6 @@ class VerificationDashboard {
         };
     }
     
-    // НОВЫЙ МЕТОД: Стабильная генерация табличных данных
     generateStableTableData(tabType, days, seed) {
         const data = [];
         const currentDate = new Date();
@@ -2038,6 +1985,156 @@ class VerificationDashboard {
         }
         
         return data;
+    }
+
+    // Утилитарные методы форматирования
+    safeNumber(value, decimals = 0) {
+        const num = Number(value);
+        if (isNaN(num)) return 0;
+        return decimals > 0 ? Math.round(num * Math.pow(10, decimals)) / Math.pow(10, decimals) : Math.floor(num);
+    }
+    
+    calculatePercentage(value, total) {
+        if (!total || total === 0) return 0;
+        const percentage = (value / total) * 100;
+        return Math.round(percentage * 10) / 10;
+    }
+    
+    formatCounterValue(value, format) {
+        switch (format) {
+            case 'currency':
+                return this.formatCurrency(value);
+            case 'percent':
+                return this.formatPercentage(value) + '%';
+            case 'hours':
+                return this.formatHours(value);
+            default:
+                return this.formatNumber(value);
+        }
+    }
+    
+    formatNumber(number) {
+        const num = this.safeNumber(number);
+        
+        if (num >= 1000000000) {
+            return (num / 1000000000).toFixed(1) + ' млрд';
+        } else if (num >= 1000000) {
+            return (num / 1000000).toFixed(1) + ' млн';
+        } else if (num >= 1000) {
+            return (num / 1000).toFixed(1) + ' тыс.';
+        }
+        
+        return new Intl.NumberFormat('ru-RU').format(num);
+    }
+    
+    formatCurrency(number) {
+        return this.formatNumber(number) + ' ₽';
+    }
+    
+    formatPercentage(number, decimals = 1) {
+        const num = this.safeNumber(number, decimals);
+        return num.toFixed(decimals);
+    }
+    
+    formatHours(number) {
+        const num = this.safeNumber(number, 1);
+        return num.toFixed(1) + 'ч';
+    }
+
+    getCurrentTimestamp() {
+        return new Date().toISOString().replace('T', ' ').substring(0, 19);
+    }
+
+    getPeriodDays() {
+        switch (this.currentPeriod) {
+            case '7': return 7;
+            case '30': return 30;
+            case '90': return 90;
+            default:
+                if (this.currentPeriod.includes('_')) {
+                    const [start, end] = this.currentPeriod.split('_');
+                    const startDate = new Date(start);
+                    const endDate = new Date(end);
+                    return Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
+                }
+                return 7;
+        }
+    }
+
+    waitFor(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    generateMockData(tabName) {
+        const period = this.currentPeriod;
+        const cacheKey = `${tabName}-${period}`;
+        
+        if (this.dataCache.has(cacheKey)) {
+            console.log(`🔄 Используем кешированные данные для ${cacheKey}`);
+            return this.dataCache.get(cacheKey);
+        }
+        
+        const baseSeed = this.generateStableSeed(period);
+        const periodDays = this.getPeriodDays();
+        
+        console.log(`🎲 Генерируем стабильные тестовые данные для ${cacheKey} с seed: ${baseSeed}`);
+        
+        const baseData = {
+            totalCount: this.seededRandom(baseSeed + 1, 5000, 15000),
+            totalAmount: this.seededRandom(baseSeed + 2, 2000000, 8000000),
+            confirmedCount: this.seededRandom(baseSeed + 3, 2000, 8000),
+            gisAmount: this.seededRandom(baseSeed + 4, 1000000, 4000000),
+            confirmationRate: this.seededRandom(baseSeed + 5, 70, 95, 1),
+            
+            monthlyData: this.generateStableChartData('monthly', 6, baseSeed + 10),
+            dailyData: this.generateStableChartData('daily', periodDays, baseSeed + 20),
+            
+            countTrend: this.generateStableTrendData(baseSeed + 30),
+            amountTrend: this.generateStableTrendData(baseSeed + 31),
+            confirmedTrend: this.generateStableTrendData(baseSeed + 32),
+            rateTrend: this.generateStableTrendData(baseSeed + 33),
+            
+            tableData: this.generateStableTableData(tabName, Math.min(periodDays, 30), baseSeed + 40)
+        };
+        
+        // Специфичные данные для каждой вкладки
+        let finalData;
+        switch (tabName) {
+            case 'confirmed':
+                finalData = {
+                    ...baseData,
+                    confirmedAmount: this.seededRandom(baseSeed + 5, 1500000, 5000000),
+                    paidCount: this.seededRandom(baseSeed + 6, 1500, 6000),
+                    paidAmount: this.seededRandom(baseSeed + 7, 1200000, 4500000),
+                    avgTime: this.seededRandom(baseSeed + 8, 2, 48, 1),
+                    sourcesData: this.generateStableSourcesData(baseSeed + 50),
+                    percentageTrend: this.generateStableTrendData(baseSeed + 34),
+                    timeTrend: this.generateStableTrendData(baseSeed + 35)
+                };
+                break;
+                
+            case 'vpn':
+                finalData = {
+                    ...baseData,
+                    vpnCount: this.seededRandom(baseSeed + 9, 500, 3000),
+                    totalVpn: this.seededRandom(baseSeed + 10, 500000, 2000000),
+                    corrected: this.seededRandom(baseSeed + 11, 200, 1500),
+                    vpnRemoved: this.seededRandom(baseSeed + 12, 100, 800),
+                    vpnRemovedAmount: this.seededRandom(baseSeed + 13, 50000, 500000),
+                    correctedTrend: this.generateStableTrendData(baseSeed + 36),
+                    removedTrend: this.generateStableTrendData(baseSeed + 37),
+                    removedAmountTrend: this.generateStableTrendData(baseSeed + 38)
+                };
+                break;
+                
+            default:
+                finalData = baseData;
+        }
+        
+        this.dataCache.set(cacheKey, finalData);
+        console.log(`💾 Тестовые данные закешированы для ${cacheKey}`);
+        
+        return finalData;
     }
     
     generateChartData(type, periods) {
@@ -2162,10 +2259,26 @@ class VerificationDashboard {
     }
     
     showAnimatedLoading(tabName, show) {
+        const panel = document.getElementById(`panel-${tabName}`);
+        if (!panel) return;
+        
         if (show) {
-            this.createAnimatedLoadingOverlay(tabName);
+            let overlay = panel.querySelector('.verif-loading-overlay');
+            if (!overlay) {
+                overlay = document.createElement('div');
+                overlay.className = 'verif-loading-overlay';
+                overlay.innerHTML = `
+                    <div class="verif-spinner"></div>
+                    <div class="verif-loading-text">Загрузка данных...</div>
+                `;
+                panel.style.position = 'relative';
+                panel.appendChild(overlay);
+            }
         } else {
-            this.removeAnimatedLoadingOverlay(tabName);
+            const overlay = panel.querySelector('.verif-loading-overlay');
+            if (overlay) {
+                overlay.remove();
+            }
         }
     }
     
@@ -2262,59 +2375,48 @@ class VerificationDashboard {
             try {
                 await handler();
             } catch (error) {
-                console.error(`Ошибка обновления контента вкладки ${tabName}:`, error);
+                console.error(`❌ Ошибка обновления контента вкладки ${tabName}:`, error);
             }
         } else {
-            console.warn(`Обработчик для вкладки ${tabName} не найден`);
+            console.warn(`⚠️ Обработчик для вкладки ${tabName} не найден`);
         }
     }
     
     async animatedUpdateGeneralTab(data) {
-        // Извлекаем данные с безопасной проверкой
         const totalCount = this.safeNumber(data.totalCount);
         const totalAmount = this.safeNumber(data.totalAmount);
         const confirmedCount = this.safeNumber(data.confirmedCount);
         const gisAmount = this.safeNumber(data.gisAmount);
-        
-        // Рассчитываем недостающие значения
-        const confirmedAmount = confirmedCount > 0 ? 
-            Math.round(totalAmount * (confirmedCount / totalCount)) : 
-            this.safeNumber(data.confirmedAmount || totalAmount * 0.7);
-            
-        const otherAmount = Math.max(0, confirmedAmount - gisAmount);
+        const confirmationRate = this.safeNumber(data.confirmationRate);
         
         console.log(`📊 Обновляем общую статистику:
-        - Проездов: ${totalCount}
-        - На сумму: ${this.formatCurrency(totalAmount)}
-        - Подтверждено: ${confirmedCount}
-        - На сумму подтв.: ${this.formatCurrency(confirmedAmount)}
+        - Общая сумма: ${this.formatCurrency(totalAmount)}
         - ГИС: ${this.formatCurrency(gisAmount)}
-        - Другие: ${this.formatCurrency(otherAmount)}`);
+        - Количество: ${totalCount}
+        - Подтверждено: ${confirmedCount}
+        - Процент: ${confirmationRate}%`);
         
-        // ПРАВИЛЬНЫЙ ПОРЯДОК КАРТОЧЕК согласно вашим требованиям
+        // ИСПОЛЬЗУЕМ ПРАВИЛЬНЫЕ ID ИЗ HTML
         await this.animateCardsStagger([
-            { id: 'total-trips-count', value: totalCount, title: 'Кол-во проездов' },
-            { id: 'total-trips-amount', value: totalAmount, format: 'currency', title: 'На сумму' },
-            { id: 'confirmed-trips-count', value: confirmedCount, title: 'Подтверждено' },
-            { id: 'confirmed-amount', value: confirmedAmount, format: 'currency', title: 'На сумму' },
-            { id: 'gis-amount', value: gisAmount, format: 'currency', title: 'Оплачено в ГИС' },
-            { id: 'other-amount', value: otherAmount, format: 'currency', title: 'Оплачено в других источниках' }
+            { id: 'total-trips-amount', value: totalAmount, format: 'currency', title: 'Общая сумма поездок' },
+            { id: 'gis-amount', value: gisAmount, format: 'currency', title: 'Оплачено через ГИС' },
+            { id: 'total-trips-count', value: totalCount, title: 'Количество поездок' },
+            { id: 'confirmed-trips-count', value: confirmedCount, title: 'Подтвержденные поездки' },
+            { id: 'confirmation-rate', value: confirmationRate, format: 'percent', title: 'Процент подтверждения' }
         ]);
         
-        // Обновляем мини-графики с анимацией
+        // Обновляем мини-графики
         await this.animatedMiniChartsUpdate([
-            { id: 'summary-chart-1', data: data.countTrend },
-            { id: 'summary-chart-2', data: data.amountTrend },
+            { id: 'summary-chart-1', data: data.amountTrend },
+            { id: 'summary-chart-2', data: data.countTrend },
             { id: 'summary-chart-3', data: data.confirmedTrend },
-            { id: 'summary-chart-4', data: data.amountTrend },
-            { id: 'summary-chart-5', data: data.rateTrend },
-            { id: 'summary-chart-6', data: data.rateTrend }
+            { id: 'summary-chart-4', data: data.rateTrend },
+            { id: 'summary-chart-5', data: data.rateTrend }
         ]);
         
-        // Ждем перед созданием основных графиков
         await this.waitFor(400);
         
-        // Создаем основные графики с анимацией
+        // Создаем графики
         if (data.monthlyData) {
             await this.animatedChartCreate('general-monthly-chart', data.monthlyData, 'bar');
         }
@@ -2322,7 +2424,7 @@ class VerificationDashboard {
             await this.animatedChartCreate('general-daily-chart', data.dailyData, 'line');
         }
         
-        // Обновляем таблицу с анимацией
+        // Обновляем таблицу
         if (data.tableData) {
             await this.animatedTableUpdate('general-data-table', data.tableData, 'general');
         }
@@ -2333,34 +2435,27 @@ class VerificationDashboard {
         const confirmedAmount = this.safeNumber(data.confirmedAmount);
         const paidCount = this.safeNumber(data.paidCount);
         const paidAmount = this.safeNumber(data.paidAmount);
-        const gisAmount = this.safeNumber(data.gisAmount || paidAmount * 0.6);
-        const otherAmount = Math.max(0, paidAmount - gisAmount);
         const avgTime = this.safeNumber(data.avgTime, 1);
         
         console.log(`💳 Обновляем статистику подтвержденных:
-        - Подтверждено: ${confirmedCount}
-        - На сумму: ${this.formatCurrency(confirmedAmount)}
-        - Оплачено: ${paidCount}
-        - На сумму: ${this.formatCurrency(paidAmount)}
-        - ГИС: ${this.formatCurrency(gisAmount)}
-        - Другие: ${this.formatCurrency(otherAmount)}`);
+        - Подтверждено: ${confirmedCount} (${this.formatCurrency(confirmedAmount)})
+        - Оплачено: ${paidCount} (${this.formatCurrency(paidAmount)})
+        - Среднее время: ${avgTime}ч`);
 
+        // ИСПОЛЬЗУЕМ ПРАВИЛЬНЫЕ ID ИЗ HTML
         await this.animateCardsStagger([
-            { id: 'confirmed-count', value: confirmedCount, title: 'Кол-во проездов' },
-            { id: 'confirmed-amount', value: confirmedAmount, format: 'currency', title: 'На сумму' },
-            { id: 'confirmed-paid-count', value: paidCount, title: 'Подтверждено' },
-            { id: 'confirmed-paid-amount', value: paidAmount, format: 'currency', title: 'На сумму' },
-            { id: 'confirmed-gis-amount', value: gisAmount, format: 'currency', title: 'Оплачено в ГИС' },
-            { id: 'confirmed-other-amount', value: otherAmount, format: 'currency', title: 'Оплачено в других источниках' }
+            { id: 'confirmed-count', value: confirmedCount, title: 'Количество подтвержденных' },
+            { id: 'confirmed-amount', value: confirmedAmount, format: 'currency', title: 'Сумма подтвержденных' },
+            { id: 'confirmed-paid-count', value: paidCount, title: 'Количество оплаченных' },
+            { id: 'confirmed-paid-amount', value: paidAmount, format: 'currency', title: 'Сумма оплаченных' },
+            { id: 'confirmed-avg-time', value: avgTime, format: 'hours', title: 'Среднее время подтверждения' }
         ]);
         
-        // Остальной код остается прежним...
         await this.animatedMiniChartsUpdate([
             { id: 'confirmed-chart-1', data: data.countTrend },
             { id: 'confirmed-chart-2', data: data.amountTrend },
             { id: 'confirmed-chart-3', data: data.countTrend },
             { id: 'confirmed-chart-4', data: data.amountTrend },
-            { id: 'confirmed-chart-5', data: data.percentageTrend },
             { id: 'confirmed-chart-6', data: data.timeTrend }
         ]);
         
@@ -2382,39 +2477,32 @@ class VerificationDashboard {
         const vpnCount = this.safeNumber(data.vpnCount);
         const totalVpn = this.safeNumber(data.totalVpn);
         const corrected = this.safeNumber(data.corrected);
+        const correctedPercentage = vpnCount > 0 ? this.calculatePercentage(corrected, vpnCount) : 0;
         const vpnRemoved = this.safeNumber(data.vpnRemoved);
         const vpnRemovedAmount = this.safeNumber(data.vpnRemovedAmount);
         
-        const correctedPercentage = vpnCount > 0 ? this.calculatePercentage(corrected, vpnCount) : 0;
-        const confirmedAmount = Math.max(0, totalVpn - vpnRemovedAmount);
-        const gisAmount = Math.round(confirmedAmount * 0.7);
-        const otherAmount = confirmedAmount - gisAmount;
-        
         console.log(`🚗 Обновляем статистику ВПН:
-        - ВПН: ${vpnCount}
-        - На сумму: ${this.formatCurrency(totalVpn)}
-        - Скорректировано: ${corrected}
-        - На сумму: ${this.formatCurrency(confirmedAmount)}
-        - ГИС: ${this.formatCurrency(gisAmount)}
-        - Другие: ${this.formatCurrency(otherAmount)}`);
+        - ВПН: ${vpnCount} (${this.formatCurrency(totalVpn)})
+        - Скорректировано: ${corrected} (${correctedPercentage.toFixed(1)}%)
+        - Удалено: ${vpnRemoved} (${this.formatCurrency(vpnRemovedAmount)})`);
         
+        // ИСПОЛЬЗУЕМ ПРАВИЛЬНЫЕ ID ИЗ HTML
         await this.animateCardsStagger([
-            { id: 'vpn-count', value: vpnCount, title: 'Кол-во проездов' },
-            { id: 'vpn-total', value: totalVpn, format: 'currency', title: 'На сумму' },
-            { id: 'vpn-corrected', value: corrected, title: 'Подтверждено' },
-            { id: 'vpn-confirmed-amount', value: confirmedAmount, format: 'currency', title: 'На сумму' },
-            { id: 'vpn-gis-amount', value: gisAmount, format: 'currency', title: 'Оплачено в ГИС' },
-            { id: 'vpn-other-amount', value: otherAmount, format: 'currency', title: 'Оплачено в других источниках' }
+            { id: 'vpn-count', value: vpnCount, title: 'Кол-во ВПН' },
+            { id: 'vpn-total', value: totalVpn, format: 'currency', title: 'Сумма ВПН' },
+            { id: 'vpn-corrected', value: corrected, title: 'Скорректировано ВПН' },
+            { id: 'vpn-corrected-percentage', value: correctedPercentage, format: 'percent', title: 'Процент скорректированных' },
+            { id: 'vpn-removed', value: vpnRemoved, title: 'Удалено ВПН' },
+            { id: 'vpn-removed-amount', value: vpnRemovedAmount, format: 'currency', title: 'Сумма удаленных ВПН' }
         ]);
         
-        // Остальной код...
         await this.animatedMiniChartsUpdate([
-            { id: 'vpn-chart-1', data: data.countTrend },
-            { id: 'vpn-chart-2', data: data.amountTrend },
+            { id: 'vpn-chart-count', data: data.countTrend },
+            { id: 'vpn-chart-1', data: data.amountTrend },
+            { id: 'vpn-chart-2', data: data.correctedTrend },
             { id: 'vpn-chart-3', data: data.correctedTrend },
-            { id: 'vpn-chart-4', data: data.correctedTrend },
-            { id: 'vpn-chart-5', data: data.removedTrend },
-            { id: 'vpn-chart-6', data: data.removedAmountTrend }
+            { id: 'vpn-chart-4', data: data.removedTrend },
+            { id: 'vpn-chart-5', data: data.removedAmountTrend }
         ]);
         
         await this.waitFor(400);
@@ -2427,22 +2515,15 @@ class VerificationDashboard {
             await this.animatedTableUpdate('vpn-data-table', data.tableData, 'vpn');
         }
     }
-
-    // НОВЫЙ МЕТОД: Очистка кеша вручную
-    clearDataCache() {
-        console.log('🧹 Очищаем весь кеш данных');
-        this.dataCache.clear();
-        this.seedCache.clear();
-    }
     
     // ==========================================
     // АНИМИРОВАННЫЕ КОМПОНЕНТЫ
     // ==========================================
     
     async animateCardsStagger(cards) {
-        console.log(`🎯 Анимируем ${cards.length} карточек в правильном порядке:`);
+        console.log(`🎯 Анимируем ${cards.length} карточек:`);
         cards.forEach((card, index) => {
-            console.log(`${index + 1}. ${card.title || card.id}: ${this.formatCounterValue(card.value, card.format || 'number')}`);
+            console.log(`${index + 1}. ${card.title}: ${this.formatCounterValue(card.value, card.format || 'number')}`);
         });
         
         for (let i = 0; i < cards.length; i++) {
@@ -2450,8 +2531,8 @@ class VerificationDashboard {
             const element = document.getElementById(card.id);
             
             if (element) {
-                // Анимация карточки
-                const cardElement = element.closest('.verif-summary-card-compact');
+                // Ищем родительскую карточку
+                const cardElement = element.closest('.verif-summary-card-orange, .verif-summary-card-compact');
                 if (cardElement) {
                     cardElement.style.animation = 'none';
                     cardElement.style.opacity = '0';
@@ -2464,16 +2545,15 @@ class VerificationDashboard {
                     }, i * this.config.animation.staggerDelay);
                 }
                 
-                // Анимация счетчика
+                // Анимируем значение
                 setTimeout(() => {
                     this.animatedCounter(card.id, card.value, card.format || 'number');
                 }, (i * this.config.animation.staggerDelay) + 200);
             } else {
-                console.warn(`⚠️ Элемент с ID ${card.id} не найден`);
+                console.warn(`⚠️ Элемент с ID ${card.id} не найден в DOM`);
             }
         }
         
-        // Ждем завершения всех анимаций
         await this.waitFor(cards.length * this.config.animation.staggerDelay + 800);
     }
     
@@ -2674,9 +2754,11 @@ class VerificationDashboard {
     
     async animatedCounter(elementId, targetValue, format = 'number') {
         const element = document.getElementById(elementId);
-        if (!element) return Promise.resolve();
+        if (!element) {
+            console.warn(`⚠️ Элемент ${elementId} не найден для анимации счетчика`);
+            return Promise.resolve();
+        }
         
-        // Добавляем класс анимации
         element.classList.add('verif-counter-animate');
         
         const startValue = 0;
@@ -2688,7 +2770,7 @@ class VerificationDashboard {
                 const elapsed = currentTime - startTime;
                 const progress = Math.min(elapsed / duration, 1);
                 
-                // Более сложная easing функция для плавной анимации
+                // Easing функция
                 const easeProgress = progress < 0.5 
                     ? 4 * progress * progress * progress 
                     : 1 - Math.pow(-2 * progress + 2, 3) / 2;
@@ -2697,25 +2779,10 @@ class VerificationDashboard {
                 
                 element.textContent = this.formatCounterValue(currentValue, format);
                 
-                // Добавляем эффект пульсации во время анимации
-                if (progress < 1) {
-                    const pulseScale = 1 + Math.sin(progress * Math.PI * 6) * 0.02;
-                    element.style.transform = `scale(${pulseScale})`;
-                }
-                
                 if (progress < 1) {
                     requestAnimationFrame(animate);
                 } else {
                     element.textContent = this.formatCounterValue(targetValue, format);
-                    element.style.transform = 'scale(1)';
-                    
-                    // Финальный эффект завершения
-                    element.style.transition = 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)';
-                    element.style.transform = 'scale(1.05)';
-                    setTimeout(() => {
-                        element.style.transform = 'scale(1)';
-                    }, 150);
-                    
                     resolve();
                 }
             };
