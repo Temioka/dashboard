@@ -2654,6 +2654,53 @@ html, body {
     --table-row-hover: #fff8f4;
 }
 
+/* Котик на карточке Service Level */
+.cc-stat-card[data-stat="sl"] {
+    position: relative; /* Для абсолютного позиционирования котика */
+}
+
+.cat-on-sl {
+    position: absolute;
+    top: 0px; /* Немного выше верхней границы карточки */
+    right: 0px; /* Справа на карточке */
+    width: 100%;
+    z-index: 10;
+    pointer-events: none; /* Чтобы не мешал кликам */
+    opacity: 0.15;
+    transition: all 0.3s ease;
+}
+
+@keyframes catSit {
+    0%, 100% {
+        transform: translateY(0px) rotate(0deg);
+    }
+    25% {
+        transform: translateY(-2px) rotate(1deg);
+    }
+    50% {
+        transform: translateY(0px) rotate(0deg);
+    }
+    75% {
+        transform: translateY(-1px) rotate(-1deg);
+    }
+}
+
+/* При наведении на карточку котик реагирует */
+.cc-stat-card:hover .cat-on-sl {
+    transform: scale(1.1);
+    opacity: 1;
+}
+
+/* Адаптивность для мобильных */
+@media (max-width: 768px) {
+    .cat-on-sl {
+        width: 40px;
+        height: 40px;
+        top: -15px;
+        right: 5px;
+    }
+}
+
 /* Общий контейнер - полная ширина */
 .container {
     width: 100%;
@@ -10992,73 +11039,72 @@ body {
         CТИЛИ ДЛЯ ВЕРИФИКАЦИИ
 ==============================================*/
 :root {
-    /* Цветовая схема */
+    /* Orange Color Palette */
     --verif-primary: #ff6b35;
     --verif-primary-dark: #e55a2b;
     --verif-primary-light: #ff8555;
     --verif-secondary: #ff8555;
     --verif-accent: #ffab7a;
     
-    /* Статусные цвета */
+    /* Status Colors */
     --verif-success: #10b981;
     --verif-warning: #f59e0b;
     --verif-danger: #ef4444;
     --verif-info: #60a5fa;
     
-    /* Фоновые цвета */
+    /* White Theme Colors */
     --verif-bg-primary: #ffffff;
     --verif-bg-secondary: #fafafa;
     --verif-bg-tertiary: #f5f5f5;
     --verif-bg-card: #ffffff;
     
-    /* Текстовые цвета */
+    /* Text Colors */
     --verif-text-primary: #1f2937;
     --verif-text-secondary: #6b7280;
     --verif-text-tertiary: #9ca3af;
     --verif-text-light: #d1d5db;
     
-    /* Границы */
+    /* Border Colors */
     --verif-border: #e5e7eb;
     --verif-border-light: #f3f4f6;
     --verif-border-hover: #ff6b35;
     
-    /* Тени */
+    /* Shadow Definitions */
     --verif-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    --verif-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    --verif-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-    --verif-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    --verif-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --verif-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --verif-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
     --verif-shadow-orange: 0 4px 14px 0 rgba(255, 107, 53, 0.15);
     
-    /* Радиусы */
+    /* Border Radius */
     --verif-radius-sm: 6px;
     --verif-radius-md: 8px;
     --verif-radius-lg: 12px;
     --verif-radius-xl: 16px;
     --verif-radius-2xl: 20px;
     
-    /* Переходы */
+    /* Transitions */
     --verif-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     --verif-transition-fast: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
     --verif-transition-slow: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* === ОСНОВНЫЕ СТИЛИ === */
+* {
+    box-sizing: border-box;
+}
 
 .verif-dashboard-orange {
     background: var(--verif-bg-primary);
+    min-height: 100vh;
     padding: 2rem;
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     color: var(--verif-text-primary);
     line-height: 1.6;
-    opacity: 0;
-    transition: opacity 0.5s ease;
 }
 
-.verif-dashboard-orange.loaded {
-    opacity: 1;
-}
-
-/* === ЗАГОЛОВОК === */
+/* ==========================================
+   HEADER SECTION
+   ========================================== */
 
 .verif-header-section {
     background: linear-gradient(135deg, var(--verif-primary) 0%, var(--verif-secondary) 100%);
@@ -11069,15 +11115,19 @@ body {
     position: relative;
     overflow: hidden;
     box-shadow: var(--verif-shadow-orange);
-    animation: slideInDown 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+    animation: verifSlideInDown 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .verif-header-section::before {
     content: '';
     position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 60"><circle cx="30" cy="30" r="1" fill="rgba(255,255,255,0.1)"/></svg>');
-    animation: float 20s linear infinite;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, transparent 25%, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.05) 50%, transparent 50%, transparent 75%, rgba(255,255,255,0.05) 75%);
+    background-size: 30px 30px;
+    animation: verifSlidePattern 20s linear infinite;
 }
 
 .verif-header-content {
@@ -11088,6 +11138,10 @@ body {
     z-index: 1;
 }
 
+.verif-header-text {
+    flex: 1;
+}
+
 .verif-main-title-white {
     font-size: 2.5rem;
     font-weight: 800;
@@ -11095,7 +11149,7 @@ body {
     display: flex;
     align-items: center;
     gap: 1rem;
-    color: white;
+    color: white !important;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
@@ -11103,6 +11157,7 @@ body {
     width: 2.5rem;
     height: 2.5rem;
     stroke-width: 2;
+    animation: verifFloat 6s ease-in-out infinite;
 }
 
 .verif-subtitle {
@@ -11113,10 +11168,16 @@ body {
     max-width: 600px;
 }
 
+.verif-header-info {
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+}
+
 .verif-date-card {
     background: rgba(255, 255, 255, 0.15);
     backdrop-filter: blur(10px);
-    padding: 1rem 1.5rem;
+    padding: 1.25rem 2rem;
     border-radius: var(--verif-radius-lg);
     border: 1px solid rgba(255, 255, 255, 0.2);
     transition: var(--verif-transition);
@@ -11126,27 +11187,30 @@ body {
 .verif-date-card:hover {
     background: rgba(255, 255, 255, 0.25);
     transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
 }
 
 .verif-date-label {
-    font-size: 0.8rem;
+    font-size: 0.9rem;
     opacity: 0.8;
-    margin-bottom: 0.25rem;
+    margin-bottom: 0.5rem;
     font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 
 .verif-date-value {
-    font-size: 1.1rem;
+    font-size: 1.25rem;
     font-weight: 700;
 }
 
-/* === НАВИГАЦИЯ === */
+/* ==========================================
+   NAVIGATION TABS
+   ========================================== */
 
 .verif-nav-section {
     margin-bottom: 2rem;
-    animation: fadeInUp 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) 0.1s both;
+    animation: verifFadeInUp 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) 0.1s both;
 }
 
 .verif-nav-header {
@@ -11171,6 +11235,8 @@ body {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 1.5rem;
+    max-width: 1200px;
+    margin: 0 auto;
 }
 
 .verif-nav-tab {
@@ -11188,7 +11254,6 @@ body {
     text-align: left;
     box-shadow: var(--verif-shadow-sm);
     text-decoration: none;
-    color: var(--verif-text-primary);
 }
 
 .verif-nav-tab:hover {
@@ -11199,17 +11264,19 @@ body {
 
 .verif-nav-tab.active {
     border-color: var(--verif-primary);
-    background: linear-gradient(135deg, rgba(255, 107, 53, 0.05), rgba(255, 133, 85, 0.05));
+    background: linear-gradient(135deg, rgba(255, 107, 53, 0.03), rgba(255, 133, 85, 0.03));
     box-shadow: var(--verif-shadow-orange);
 }
 
 .verif-nav-tab.active::before {
     content: '';
     position: absolute;
-    top: 0; left: 0;
+    top: 0;
+    left: 0;
     width: 4px;
     height: 100%;
     background: linear-gradient(to bottom, var(--verif-primary), var(--verif-secondary));
+    animation: verifExpandHeight 0.3s ease-out;
 }
 
 .verif-tab-icon {
@@ -11263,7 +11330,24 @@ body {
     line-height: 1.4;
 }
 
-/* === ПЕРИОД === */
+.verif-tab-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--verif-border);
+    transition: var(--verif-transition);
+    flex-shrink: 0;
+}
+
+.verif-nav-tab.active .verif-tab-indicator {
+    background: var(--verif-primary);
+    box-shadow: 0 0 0 4px rgba(255, 107, 53, 0.2);
+    animation: verifPulse 2s infinite;
+}
+
+/* ==========================================
+   PERIOD SELECTION
+   ========================================== */
 
 .verif-period-section {
     background: var(--verif-bg-card);
@@ -11272,11 +11356,16 @@ body {
     margin-bottom: 2rem;
     border: 1px solid var(--verif-border);
     box-shadow: var(--verif-shadow-sm);
-    animation: fadeInUp 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) 0.4s both;
+    animation: verifFadeInUp 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) 0.4s both;
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 2rem;
 }
 
 .verif-period-header {
     margin-bottom: 1rem;
+    text-align: center;
 }
 
 .verif-period-title {
@@ -11290,6 +11379,7 @@ body {
     display: flex;
     gap: 1rem;
     flex-wrap: wrap;
+    justify-content: center;
 }
 
 .verif-period-btn {
@@ -11334,7 +11424,7 @@ body {
     padding: 1rem;
     background: var(--verif-bg-tertiary);
     border-radius: var(--verif-radius-lg);
-    animation: slideDown 0.3s ease-out;
+    animation: verifSlideDown 0.3s ease-out;
 }
 
 .verif-date-inputs {
@@ -11342,18 +11432,13 @@ body {
     align-items: center;
     gap: 1rem;
     flex-wrap: wrap;
+    justify-content: center;
 }
 
 .verif-date-group {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
-}
-
-.verif-date-group label {
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: var(--verif-text-secondary);
 }
 
 .verif-date-input {
@@ -11373,9 +11458,19 @@ body {
 }
 
 .verif-date-separator {
-    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
     color: var(--verif-text-secondary);
     margin-top: 1.5rem;
+}
+
+.verif-date-separator svg {
+    width: 1.25rem;
+    height: 1.25rem;
+    stroke-width: 2;
 }
 
 .verif-apply-btn {
@@ -11400,16 +11495,18 @@ body {
     box-shadow: 0 8px 25px rgba(255, 107, 53, 0.3);
 }
 
-.verif-apply-btn svg {
+.verif-btn-icon {
     width: 1rem;
     height: 1rem;
     stroke-width: 2.5;
 }
 
-/* === КОНТЕНТНЫЕ ПАНЕЛИ === */
+/* ==========================================
+   CONTENT PANELS
+   ========================================== */
 
 .verif-content-section {
-    animation: fadeInUp 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) 0.5s both;
+    animation: verifFadeInUp 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) 0.5s both;
 }
 
 .verif-panel-orange {
@@ -11419,7 +11516,7 @@ body {
     border: 1px solid var(--verif-border);
     overflow: hidden;
     box-shadow: var(--verif-shadow-sm);
-    animation: fadeIn 0.5s ease-out;
+    animation: verifFadeIn 0.5s ease-out;
 }
 
 .verif-panel-orange.active {
@@ -11430,18 +11527,20 @@ body {
     background: linear-gradient(135deg, var(--verif-bg-tertiary), var(--verif-bg-secondary));
     padding: 1.5rem;
     border-bottom: 1px solid var(--verif-border);
+    text-align: center;
 }
 
 .verif-panel-title {
     display: flex;
     align-items: center;
+    justify-content: center;
     font-weight: 600;
     color: var(--verif-text-primary);
     margin: 0;
     font-size: 1.5rem;
 }
 
-.verif-panel-title svg {
+.verif-panel-icon {
     width: 1.5rem;
     height: 1.5rem;
     stroke: var(--verif-primary);
@@ -11449,54 +11548,101 @@ body {
     margin-right: 0.75rem;
 }
 
-/* === СЕТКА КАРТОЧЕК (6 В РЯД) === */
+/* ==========================================
+   ИСПРАВЛЕННАЯ СИСТЕМА КАРТОЧЕК ДЛЯ API
+   ========================================== */
 
-.verif-summary-grid-6 {
+/* Основной контейнер карточек - НЕ ИЗМЕНЯЕМ СТРУКТУРУ */
+.verif-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    padding: 1.5rem;
+    margin: 0 auto;
+    max-width: 1600px;
+}
+
+/* СПЕЦИАЛЬНЫЕ НАСТРОЙКИ ДЛЯ КАЖДОЙ ВКЛАДКИ */
+
+/* General Tab - 4 карточки */
+#panel-general .verif-summary-grid {
+    grid-template-columns: repeat(6, 1fr) !important;
+    max-width: 1800px !important;
+}
+
+/* Confirmed Tab - 5 карточек */
+#panel-confirmed .verif-summary-grid-single-row {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 1.5rem;
+    padding: 1.5rem;
+    margin: 0 auto;
+    max-width: 1500px;
+}
+
+/* VPN Tab - 6 карточек */
+#panel-vpn .verif-summary-grid-single-row {
     display: grid;
     grid-template-columns: repeat(6, 1fr);
-    gap: 1rem;
+    gap: 1.5rem;
     padding: 1.5rem;
+    margin: 0 auto;
+    max-width: 1800px;
 }
 
+/* ЕДИНЫЙ СТИЛЬ ДЛЯ ВСЕХ КАРТОЧЕК */
+.verif-summary-card-orange,
 .verif-summary-card-compact {
     background: linear-gradient(135deg, #ffffff 0%, #fafafa 100%);
-    border-radius: var(--verif-radius-lg);
     border: 1px solid var(--verif-border);
-    box-shadow: var(--verif-shadow-sm);
+    border-radius: var(--verif-radius-xl);
+    padding: 1.5rem;
     transition: var(--verif-transition);
-    overflow: hidden;
     position: relative;
-    min-height: 160px;
+    overflow: hidden;
     display: flex;
     flex-direction: column;
-    padding: 1rem;
-    cursor: pointer;
+    justify-content: space-between;
+    align-items: center;
+    text-align: center;
+    min-height: 160px;
+    box-shadow: var(--verif-shadow-sm);
 }
 
+/* Цветная полоса сверху */
+.verif-summary-card-orange::before,
 .verif-summary-card-compact::before {
     content: '';
     position: absolute;
-    top: 0; left: 0; right: 0;
+    top: 0;
+    left: 0;
+    right: 0;
     height: 4px;
     background: linear-gradient(90deg, var(--verif-primary), var(--verif-secondary));
-    opacity: 0.7;
+    transform: scaleX(0.7);
+    transform-origin: center;
     transition: var(--verif-transition);
 }
 
+/* Hover эффекты */
+.verif-summary-card-orange:hover,
 .verif-summary-card-compact:hover {
-    transform: translateY(-4px) scale(1.02);
-    box-shadow: var(--verif-shadow-lg);
-    border-color: rgba(255, 107, 53, 0.3);
+    transform: translateY(-6px) scale(1.02);
+    box-shadow: var(--verif-shadow-xl);
+    border-color: var(--verif-primary);
 }
 
+.verif-summary-card-orange:hover::before,
 .verif-summary-card-compact:hover::before {
-    opacity: 1;
-    height: 6px;
+    transform: scaleX(1);
+    height: 5px;
 }
 
+/* ИКОНКИ КАРТОЧЕК */
+.verif-summary-icon,
 .verif-summary-icon-compact {
-    width: 48px;
-    height: 48px;
+    width: 3.5rem;
+    height: 3.5rem;
     background: linear-gradient(135deg, var(--verif-primary), var(--verif-secondary));
     border-radius: var(--verif-radius-lg);
     display: flex;
@@ -11504,76 +11650,106 @@ body {
     justify-content: center;
     margin-bottom: 1rem;
     flex-shrink: 0;
-    box-shadow: var(--verif-shadow-orange);
     transition: var(--verif-transition);
+    box-shadow: var(--verif-shadow-orange);
 }
 
+.verif-summary-icon svg,
 .verif-summary-icon-compact svg {
-    width: 24px;
-    height: 24px;
+    width: 1.75rem;
+    height: 1.75rem;
     stroke: white;
     stroke-width: 2;
 }
 
+.verif-summary-card-orange:hover .verif-summary-icon,
 .verif-summary-card-compact:hover .verif-summary-icon-compact {
     transform: scale(1.1) rotate(5deg);
-    box-shadow: 0 8px 25px rgba(255, 107, 53, 0.4);
+    box-shadow: 0 8px 25px rgba(255, 107, 53, 0.3);
 }
 
+/* КОНТЕНТ КАРТОЧЕК - КРИТИЧЕСКИ ВАЖНО ДЛЯ API */
+.verif-summary-content,
 .verif-summary-content-compact {
     flex: 1;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    min-height: 0;
+    width: 100%;
 }
 
+/* ЗНАЧЕНИЯ В КАРТОЧКАХ - ЗДЕСЬ ОТОБРАЖАЮТСЯ API ДАННЫЕ */
+.verif-summary-value,
 .verif-summary-value-compact {
-    font-size: 1.75rem;
-    font-weight: 700;
-    color: var(--verif-text-primary);
-    line-height: 1.2;
-    margin-bottom: 0.5rem;
-    font-family: 'Inter', system-ui, sans-serif;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    animation: countUp 1.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    font-size: 1.4rem !important; /* было 1.75rem */
+    font-weight: 700 !important;
+    color: var(--verif-gray-800) !important;
+    line-height: 1.2 !important;
+    margin: 0.5rem 0 !important;
+    text-align: center !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    max-width: 100% !important;
+    animation: verifCountUp 1.2s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
 }
 
+/* ПОДПИСИ КАРТОЧЕК */
+.verif-summary-label,
 .verif-summary-label-compact {
-    font-size: 0.875rem;
-    color: var(--verif-text-secondary);
+    font-size: 0.9rem;
     font-weight: 500;
-    line-height: 1.3;
+    color: var(--verif-text-secondary);
+    line-height: 1.4;
     margin-bottom: 0.75rem;
+    text-align: center;
     overflow: hidden;
     text-overflow: ellipsis;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
+    max-width: 100%;
+    word-wrap: break-word;
 }
 
-.verif-summary-chart-compact {
-    height: 40px;
+/* ИЗМЕНЕНИЯ И ТРЕНДЫ */
+.verif-summary-change,
+.verif-summary-change-compact {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--verif-success);
+    background: rgba(16, 185, 129, 0.1);
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--verif-radius-sm);
+    text-align: center;
     margin-top: auto;
-    opacity: 0.8;
+}
+
+/* МИНИ-ГРАФИКИ В КАРТОЧКАХ */
+.verif-summary-chart,
+.verif-summary-chart-compact {
+    width: 80px;
+    height: 40px;
+    margin: 0.5rem auto 0;
     border-radius: var(--verif-radius-sm);
     overflow: hidden;
     flex-shrink: 0;
 }
 
-.verif-summary-chart-compact canvas {
-    width: 100% !important;
-    height: 100% !important;
-}
-
-/* === ГРАФИКИ === */
+/* ==========================================
+   ГРАФИКИ
+   ========================================== */
 
 .verif-charts-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
     gap: 1.5rem;
     padding: 0 1.5rem 1.5rem;
+    max-width: 1600px;
+    margin: 0 auto;
 }
 
 .verif-chart-card-orange {
@@ -11614,6 +11790,14 @@ body {
     font-size: 1.1rem;
 }
 
+.verif-chart-icon {
+    width: 1.25rem;
+    height: 1.25rem;
+    stroke: var(--verif-primary);
+    stroke-width: 2;
+    margin-right: 0.5rem;
+}
+
 .verif-chart-container {
     padding: 1.5rem;
     min-height: 400px;
@@ -11626,15 +11810,53 @@ body {
     max-height: 400px;
 }
 
-/* === ТАБЛИЦЫ === */
+/* СОСТОЯНИЯ ЗАГРУЗКИ */
+.verif-chart-loading,
+.verif-table-loading {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.9);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    border-radius: var(--verif-radius-lg);
+}
+
+.verif-chart-spinner,
+.verif-table-spinner {
+    width: 2rem;
+    height: 2rem;
+    border: 3px solid var(--verif-border);
+    border-top: 3px solid var(--verif-primary);
+    border-radius: 50%;
+    animation: verifSpin 1s linear infinite;
+    margin-bottom: 0.75rem;
+}
+
+.verif-chart-loading-text,
+.verif-table-loading-text {
+    font-size: 0.9rem;
+    color: var(--verif-text-secondary);
+    font-weight: 500;
+}
+
+/* ==========================================
+   ТАБЛИЦЫ
+   ========================================== */
 
 .verif-data-table-section {
-    margin: 1.5rem;
+    margin: 1.5rem auto;
     border: 1px solid var(--verif-border);
     border-radius: var(--verif-radius-xl);
     overflow: hidden;
     background: var(--verif-bg-card);
     box-shadow: var(--verif-shadow-sm);
+    max-width: 1600px;
 }
 
 .verif-table-header {
@@ -11644,6 +11866,8 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
 }
 
 .verif-table-title {
@@ -11653,6 +11877,14 @@ body {
     color: var(--verif-text-primary);
     margin: 0;
     font-size: 1.1rem;
+}
+
+.verif-table-icon {
+    width: 1.25rem;
+    height: 1.25rem;
+    stroke: var(--verif-primary);
+    stroke-width: 2;
+    margin-right: 0.5rem;
 }
 
 .verif-table-controls {
@@ -11728,7 +11960,7 @@ body {
 .verif-data-table th,
 .verif-data-table td {
     padding: 0.75rem 1rem;
-    text-align: left;
+    text-align: center;
     border-bottom: 1px solid var(--verif-border);
 }
 
@@ -11743,6 +11975,7 @@ body {
 
 .verif-data-table td {
     color: var(--verif-text-secondary);
+    font-weight: 500;
 }
 
 .verif-data-table tbody tr {
@@ -11751,11 +11984,14 @@ body {
 
 .verif-data-table tbody tr:hover {
     background: var(--verif-bg-tertiary);
+    transform: scale(1.01);
 }
 
-/* === АНИМАЦИИ === */
+/* ==========================================
+   АНИМАЦИИ
+   ========================================== */
 
-@keyframes slideInDown {
+@keyframes verifSlideInDown {
     from {
         opacity: 0;
         transform: translateY(-50px);
@@ -11766,7 +12002,27 @@ body {
     }
 }
 
-@keyframes fadeInUp {
+@keyframes verifSlideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes verifFadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes verifFadeInUp {
     from {
         opacity: 0;
         transform: translateY(20px);
@@ -11777,12 +12033,7 @@ body {
     }
 }
 
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-
-@keyframes slideDown {
+@keyframes verifSlideDown {
     from {
         opacity: 0;
         transform: translateY(-10px);
@@ -11795,14 +12046,32 @@ body {
     }
 }
 
-@keyframes countUp {
+@keyframes verifFloat {
+    0%, 100% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+@keyframes verifSlidePattern {
+    0% {
+        background-position: 0 0;
+    }
+    100% {
+        background-position: 60px 60px;
+    }
+}
+
+@keyframes verifCountUp {
     0% {
         opacity: 0;
         transform: scale(0.8);
     }
     50% {
         opacity: 0.8;
-        transform: scale(1.05);
+        transform: scale(1.1);
     }
     100% {
         opacity: 1;
@@ -11810,73 +12079,112 @@ body {
     }
 }
 
-@keyframes float {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-10px); }
+@keyframes verifExpandHeight {
+    from {
+        height: 0;
+    }
+    to {
+        height: 100%;
+    }
 }
 
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+@keyframes verifSpin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
-/* === АДАПТИВНОСТЬ === */
+@keyframes verifPulse {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.8;
+        transform: scale(1.05);
+    }
+}
 
-/* Очень широкие экраны */
+/* ==========================================
+   АДАПТИВНОСТЬ
+   ========================================== */
+
+/* Широкие экраны */
 @media (min-width: 1600px) {
-    .verif-summary-grid-6 {
-        gap: 1.5rem;
+    .verif-summary-grid,
+    #panel-confirmed .verif-summary-grid-single-row,
+    #panel-vpn .verif-summary-grid-single-row {
+        gap: 2rem;
+        padding: 2rem;
     }
     
+    .verif-summary-card-orange,
     .verif-summary-card-compact {
         min-height: 180px;
-        padding: 1.5rem;
+        padding: 2rem;
     }
     
+    .verif-summary-value,
     .verif-summary-value-compact {
         font-size: 2rem;
     }
     
-    .verif-summary-icon-compact {
-        width: 56px;
-        height: 56px;
-    }
-}
-
-/* Широкие экраны */
-@media (max-width: 1400px) {
-    .verif-summary-grid-6 {
-        grid-template-columns: repeat(3, 1fr);
+    .verif-summary-label,
+    .verif-summary-label-compact {
+        font-size: 1rem;
     }
 }
 
 /* Планшеты */
+@media (max-width: 1400px) {
+    .verif-nav-tabs {
+        grid-template-columns: 1fr;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    
+    #panel-general .verif-summary-grid {
+        grid-template-columns: repeat(3, 1fr);
+        max-width: 700px;
+    }
+    
+    #panel-confirmed .verif-summary-grid-single-row,
+    #panel-vpn .verif-summary-grid-single-row {
+        grid-template-columns: repeat(3, 1fr) !important;
+        max-width: 900px !important;
+    }
+}
+
 @media (max-width: 1024px) {
     .verif-dashboard-orange {
         padding: 1.5rem;
     }
     
-    .verif-nav-tabs {
-        grid-template-columns: 1fr;
+    .verif-summary-grid,
+    #panel-confirmed .verif-summary-grid-single-row,
+    #panel-vpn .verif-summary-grid-single-row {
+        grid-template-columns: repeat(2, 1fr);
         gap: 1rem;
+        padding: 1rem;
+        max-width: 600px;
+    }
+    
+    .verif-summary-card-orange,
+    .verif-summary-card-compact {
+        min-height: 150px;
+        padding: 1.25rem;
+    }
+    
+    .verif-summary-value,
+    .verif-summary-value-compact {
+        font-size: 1.5rem;
     }
     
     .verif-charts-grid {
         grid-template-columns: 1fr;
-    }
-    
-    .verif-summary-grid-6 {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 1rem;
-    }
-    
-    .verif-summary-card-compact {
-        min-height: 140px;
-        padding: 1rem;
-    }
-    
-    .verif-summary-value-compact {
-        font-size: 1.5rem;
     }
 }
 
@@ -11900,33 +12208,9 @@ body {
         font-size: 2rem;
     }
     
-    .verif-summary-grid-6 {
-        grid-template-columns: 1fr;
-        gap: 0.75rem;
-        padding: 1rem;
-    }
-    
-    .verif-summary-card-compact {
-        min-height: 120px;
-        padding: 0.875rem;
-    }
-    
-    .verif-summary-value-compact {
-        font-size: 1.375rem;
-    }
-    
-    .verif-summary-label-compact {
-        font-size: 0.8rem;
-    }
-    
     .verif-period-controls {
         flex-direction: column;
-        gap: 0.5rem;
-    }
-    
-    .verif-period-btn {
-        justify-content: center;
-        width: 100%;
+        align-items: stretch;
     }
     
     .verif-date-inputs {
@@ -11934,13 +12218,56 @@ body {
         align-items: stretch;
     }
     
-    .verif-charts-grid {
-        padding: 0 1rem 1rem;
+    .verif-summary-grid,
+    #panel-confirmed .verif-summary-grid-single-row,
+    #panel-vpn .verif-summary-grid-single-row {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+        padding: 0.75rem;
+        max-width: 400px;
     }
     
-    .verif-chart-container {
+    .verif-summary-card-orange,
+    .verif-summary-card-compact {
+        min-height: 140px;
         padding: 1rem;
-        min-height: 300px;
+        flex-direction: row;
+        text-align: left;
+    }
+    
+    .verif-summary-icon,
+    .verif-summary-icon-compact {
+        width: 3rem;
+        height: 3rem;
+        margin-right: 1rem;
+        margin-bottom: 0;
+        flex-shrink: 0;
+    }
+    
+    .verif-summary-content,
+    .verif-summary-content-compact {
+        flex: 1;
+        align-items: flex-start;
+        text-align: left;
+    }
+    
+    .verif-summary-value,
+    .verif-summary-value-compact {
+        font-size: 1.5rem;
+        text-align: left;
+    }
+    
+    .verif-summary-label,
+    .verif-summary-label-compact {
+        font-size: 0.85rem;
+        text-align: left;
+    }
+    
+    .verif-summary-chart,
+    .verif-summary-chart-compact {
+        width: 60px;
+        height: 30px;
+        margin: 0 0 0 auto;
     }
     
     .verif-table-controls {
@@ -11954,77 +12281,43 @@ body {
     }
 }
 
-/* Маленькие мобильные */
 @media (max-width: 480px) {
-    .verif-dashboard-orange {
+    .verif-summary-grid,
+    #panel-confirmed .verif-summary-grid-single-row,
+    #panel-vpn .verif-summary-grid-single-row {
+        max-width: 100%;
+        margin: 1rem 0;
+    }
+    
+    .verif-summary-card-orange,
+    .verif-summary-card-compact {
+        min-height: 120px;
         padding: 0.75rem;
     }
     
-    .verif-header-section {
-        margin-bottom: 1.5rem;
-        padding: 1rem;
+    .verif-summary-value,
+    .verif-summary-value-compact {
+        font-size: 1.25rem;
+    }
+    
+    .verif-summary-label,
+    .verif-summary-label-compact {
+        font-size: 0.8rem;
     }
     
     .verif-main-title-white {
         font-size: 1.75rem;
     }
     
-    .verif-subtitle {
-        font-size: 0.9rem;
-    }
-    
-    .verif-summary-value-compact {
-        font-size: 1.25rem;
-    }
-    
-    .verif-summary-label-compact {
-        font-size: 0.75rem;
-    }
-    
     .verif-chart-container {
-        min-height: 250px;
-        padding: 0.75rem;
-    }
-    
-    .verif-data-table {
-        font-size: 0.8rem;
-    }
-    
-    .verif-data-table th,
-    .verif-data-table td {
-        padding: 0.5rem;
+        min-height: 300px;
+        padding: 1rem;
     }
 }
 
-/* === УТИЛИТЫ === */
-
-.verif-spinner {
-    width: 40px;
-    height: 40px;
-    border: 4px solid var(--verif-border-light);
-    border-top: 4px solid var(--verif-primary);
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin: 0 auto;
-}
-
-.hidden { display: none !important; }
-.visible { display: block !important; }
-
-/* Доступность */
-.sr-only {
-    position: absolute !important;
-    width: 1px !important;
-    height: 1px !important;
-    padding: 0 !important;
-    margin: -1px !important;
-    overflow: hidden !important;
-    clip: rect(0, 0, 0, 0) !important;
-    white-space: nowrap !important;
-    border: 0 !important;
-}
-
-/* === ПЕЧАТЬ === */
+/* ==========================================
+   PRINT СТИЛИ
+   ========================================== */
 
 @media print {
     .verif-dashboard-orange {
@@ -12052,20 +12345,12 @@ body {
     .verif-chart-card-orange {
         page-break-inside: avoid;
     }
+    
+    .verif-chart-loading,
+    .verif-table-loading {
+        display: none !important;
+    }
 }
-
-/* === ТЕМЫ === */
-
-/* Тема для Temioka (персональная настройка) */
-.verif-dashboard-orange[data-user="Temioka"] {
-    --verif-primary: #ff6b35;
-    --verif-secondary: #ff8555;
-}
-
-.verif-dashboard-orange[data-user="Temioka"] .verif-header-section {
-    background: linear-gradient(135deg, #ff6b35 0%, #ff8555 50%, #ffab7a 100%);
-}
-
 /*==============================================
             СТИЛИ ДЛЯ ДЕБИТОРКИ
 ==============================================*/
@@ -13798,3 +14083,4 @@ body.modal-open {
         color: #d1d5db;
     }
 }
+
