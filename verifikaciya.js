@@ -3,7 +3,7 @@ class VerificationDashboard {
         // Основные параметры
         this.currentTab = 'general';
         this.currentPeriod = '7';
-        this.user = 'Temioka'; // Изменено с kondakov_av
+        this.user = 'User'; // Изменено с kondakov_av
         this.timestamp = this.getCurrentTimestamp();
         
         // Коллекции для управления
@@ -1740,9 +1740,8 @@ class VerificationDashboard {
         
         try {
             // ИЗМЕНЕНО: Только реальные данные от API - убраны тестовые данные
-            console.log(`📊 Загрузка данных от API для ${tabName} (2025-09-18 11:17:37 UTC)`);
-            console.log(`👤 Пользователь: ${this.user} (Temioka)`);
-            console.log(`🔗 GitHub активность: Temioka/program, Temioka/dashboard, Temioka/grn-analyzer`);
+            console.log(`📊 Загрузка данных ${tabName} (2025-09-18 11:17:37 UTC)`);
+            console.log(`👤 Пользователь: ${this.user} (User)`);
             
             const data = await this.fetchRealData(tabName);
             
@@ -1765,17 +1764,17 @@ class VerificationDashboard {
     }
     
     async fetchRealData(tabName) {
-        const url = `${this.config.apiEndpoint}?tab=${tabName}&period=${this.currentPeriod}&user=${this.user}&timestamp=${Date.now()}&github_user=Temioka&version=3.2.1&date=2025-09-18&time=11:17:37`;
+        const url = `${this.config.apiEndpoint}?tab=${tabName}&period=${this.currentPeriod}&user=${this.user}&timestamp=${Date.now()}&github_user=User&version=3.2.1&date=2025-09-18&time=11:17:37`;
         
         const headers = {
             'Content-Type': 'application/json',
             'X-User': this.user,
-            'X-GitHub-User': 'Temioka',
+            'X-GitHub-User': 'User',
             'X-Timestamp': '2025-09-18 11:17:37',
             'X-Tab': tabName,
             'X-Period': this.currentPeriod,
             'X-Version': '3.2.1',
-            'X-Repositories': 'Temioka/program,Temioka/dashboard,Temioka/grn-analyzer',
+            'X-Repositories': 'User/program,User/dashboard,User/grn-analyzer',
             'Accept': 'application/json',
             'Authorization': this.getAuthToken()
         };
@@ -1853,11 +1852,9 @@ class VerificationDashboard {
                     <div class="verif-loading-dot"></div>
                     <div class="verif-loading-dot"></div>
                 </div>
-                <div class="verif-loading-text">Загрузка реальных данных от API...</div>
+                <div class="verif-loading-text">Загрузка данных</div>
                 <div style="font-size: 0.75rem; color: #9ca3af; margin-top: 8px; text-align: center;">
                     Пользователь: ${this.user}<br>
-                    Время: 2025-09-18 11:17:37 UTC<br>
-                    GitHub: Temioka
                 </div>
             `;
             panel.style.position = 'relative';
@@ -1965,8 +1962,6 @@ class VerificationDashboard {
                 ">
                     <strong>Информация о запросе:</strong><br>
                     👤 Пользователь: ${this.user}<br>
-                    📅 Время: 2025-09-18 11:17:37 UTC<br>
-                    🔗 GitHub: Temioka<br>
                     📊 Вкладка: ${tabName}<br>
                     ⏱️ Период: ${this.currentPeriod}<br>
                     🌐 API: ${this.config.apiEndpoint}<br>
@@ -2413,17 +2408,18 @@ class VerificationDashboard {
     }
     
     formatCounterValue(value, format) {
-        switch (format) {
-            case 'currency':
-                return this.formatCurrency(value);
-            case 'percent':
-                return this.formatPercentage(value) + '%';
-            case 'hours':
-                return this.formatHours(value);
-            default:
-                return this.formatNumber(value);
-        }
+    switch (format) {
+        case 'currency':
+            return this.formatCurrency(value);
+        case 'percent':
+            return this.formatPercentage(value) + '%';
+        case 'hours':
+            return this.formatHours(value);
+        case 'number':
+        default:
+            return this.formatNumber(value);
     }
+}
     
     // ==========================================
     // РАБОТА С ГРАФИКАМИ (с анимациями)
@@ -2903,10 +2899,10 @@ class VerificationDashboard {
                         </svg>
                     </div>
                     <div style="text-align: center;">
-                        <div style="font-weight: 600; font-size: 16px; margin-bottom: 4px; color: #ef4444;">API не вернул данные таблицы</div>
-                        <div style="font-size: 14px; opacity: 0.7;">Таблица заполнится после получения данных от API сервера</div>
+                        <div style="font-weight: 600; font-size: 16px; margin-bottom: 4px; color: #ef4444;">Нет данных за данный период</div>
+                        <div style="font-size: 14px; opacity: 0.7;">Таблица заполнится после получения данных от базы данных</div>
                         <div style="font-size: 12px; color: #9ca3af; margin-top: 8px;">
-                            Время: 2025-09-18 11:17:37 UTC | Пользователь: ${this.user}
+                           Пользователь: ${this.user}
                         </div>
                     </div>
                 </div>
@@ -3045,13 +3041,24 @@ class VerificationDashboard {
     // ==========================================
     
     safeNumber(value, decimals = 0) {
-        const num = Number(value);
-        if (isNaN(num)) return 0;
-        return decimals > 0 ? Math.round(num * Math.pow(10, decimals)) / Math.pow(10, decimals) : Math.floor(num);
+        let num = Number(value);
+        
+        if (isNaN(num) || !isFinite(num)) {
+            return 0;
+        }
+        
+        if (decimals > 0) {
+            return Math.round(num * Math.pow(10, decimals)) / Math.pow(10, decimals);
+        } else {
+            return Math.round(num);
+        }
     }
     
     safeString(value) {
-        return value != null ? String(value) : '-';
+        if (value === null || value === undefined) {
+            return '-';
+        }
+        return String(value);
     }
     
     calculatePercentage(value, total) {
@@ -3061,50 +3068,65 @@ class VerificationDashboard {
     }
     
     formatNumber(number) {
-        const num = this.safeNumber(number);
-        
-        if (num >= 1000000000) {
-            return (num / 1000000000).toFixed(1) + ' млрд';
-        } else if (num >= 1000000) {
-            return (num / 1000000).toFixed(1) + ' млн';
-        } else if (num >= 1000) {
-            return (num / 1000).toFixed(1) + ' тыс.';
-        }
-        
-        return new Intl.NumberFormat('ru-RU').format(num);
-    }
+    const num = this.safeNumber(number);
     
-    formatCurrency(number) {
-        return this.formatNumber(number) + ' ₽';
+    return new Intl.NumberFormat('ru-RU', {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+        useGrouping: true
+    }).format(num);
+}
+        
+        formatCurrency(number) {
+        const formattedNumber = this.formatNumber(number);
+        return formattedNumber + ' ₽';
     }
     
     formatPercentage(number, decimals = 1) {
         const num = this.safeNumber(number, decimals);
-        return num.toFixed(decimals);
+        
+        if (num === Math.floor(num)) {
+            return Math.floor(num).toString();
+        } else {
+            return num.toFixed(decimals).replace(/\.?0+$/, '');
+        }
     }
-    
+        
     formatHours(number) {
         const num = this.safeNumber(number, 1);
-        return num.toFixed(1) + 'ч';
+        
+        if (num === Math.floor(num)) {
+            return Math.floor(num).toString() + ' ч';
+        } else {
+            return num.toFixed(1).replace(/\.?0+$/, '') + ' ч';
+        }
     }
     
     formatAxisValue(value) {
-        if (value >= 1000000) return (value / 1000000).toFixed(0) + 'M';
-        if (value >= 1000) return (value / 1000).toFixed(0) + 'K';
-        return value.toString();
+        const num = this.safeNumber(value);
+        
+        if (Math.abs(num) >= 1000000) {
+            // Для осей графиков можем сократить только очень большие числа
+            return new Intl.NumberFormat('ru-RU', {
+                notation: 'compact',
+                maximumFractionDigits: 0
+            }).format(num);
+        }
+        
+        return this.formatNumber(num);
     }
     
     formatTooltipValue(value, datasetIndex = 0) {
-        if (typeof value === 'number') {
-            if (value > 1000000) {
-                return this.formatCurrency(value);
-            } else if (value > 100) {
-                return this.formatNumber(value);
-            } else {
-                return value.toFixed(1);
-            }
+        if (typeof value !== 'number') {
+            return String(value);
         }
-        return String(value);
+        
+        // Для денежных сумм
+        if (Math.abs(value) > 1000) {
+            return this.formatCurrency(value);
+        }
+        
+        return this.formatNumber(value);
     }
     
     getCurrentTimestamp() {
@@ -3138,13 +3160,38 @@ class VerificationDashboard {
             timeout = setTimeout(later, wait);
         };
     }
+
+    formatTableValue(value, type = 'number') {
+    const num = this.safeNumber(value);
+    
+    switch (type) {
+        case 'currency':
+            return this.formatCurrency(num);
+        case 'percent':
+            return this.formatPercentage(num) + '%';
+        case 'hours':
+            return this.formatHours(num);
+        case 'large_number':
+            // Для больших чисел в таблицах - всегда показываем сокращения
+            if (num >= 1000000000) {
+                return (num / 1000000000).toFixed(1).replace(/\.?0+$/, '') + ' млрд';
+            } else if (num >= 1000000) {
+                return (num / 1000000).toFixed(1).replace(/\.?0+$/, '') + ' млн';
+            } else if (num >= 1000) {
+                return (num / 1000).toFixed(1).replace(/\.?0+$/, '') + ' тыс';
+            }
+            return num.toString();
+        default:
+            return this.formatNumber(num);
+    }
+}
     
     // ==========================================
     // УПРАВЛЕНИЕ ЖИЗНЕННЫМ ЦИКЛОМ
     // ==========================================
     
     cleanup() {
-        console.log('🧹 Очистка дашборда верификации Temioka...');
+        console.log('🧹 Очистка дашборда верификации User...');
         console.log(`📅 Время очистки: 2025-09-18 11:21:06 UTC`);
         
         // Очистка интервалов
@@ -3197,7 +3244,7 @@ class VerificationDashboard {
             animationStyles.remove();
         }
         
-        console.log('✅ Дашборд Temioka очищен');
+        console.log('✅ Дашборд User очищен');
     }
     
     removeEventListeners() {
@@ -3229,13 +3276,13 @@ class VerificationDashboard {
             user: this.user,
             timestamp: '2025-09-18 11:21:06',
             
-            // GitHub активность Temioka
+            // GitHub активность User
             github: {
-                user: 'Temioka',
+                user: 'User',
                 repositories: [
-                    'Temioka/program',
-                    'Temioka/dashboard', 
-                    'Temioka/grn-analyzer'
+                    'User/program',
+                    'User/dashboard', 
+                    'User/grn-analyzer'
                 ],
                 lastActivity: '2025-09-18 11:21:06'
             },
@@ -3261,13 +3308,13 @@ class VerificationDashboard {
         const exportPayload = {
             metadata: {
                 exportedAt: '2025-09-18 11:21:06',
-                exportedBy: 'Temioka',
+                exportedBy: 'User',
                 github: {
-                    user: 'Temioka',
+                    user: 'User',
                     repositories: [
-                        'Temioka/program',
-                        'Temioka/dashboard',
-                        'Temioka/grn-analyzer'
+                        'User/program',
+                        'User/dashboard',
+                        'User/grn-analyzer'
                     ]
                 },
                 tab: tabName || 'all',
@@ -3290,12 +3337,12 @@ class VerificationDashboard {
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
         
-        console.log(`💾 Данные Temioka экспортированы в ${a.download}`);
+        console.log(`💾 Данные User экспортированы в ${a.download}`);
     }
     
     refreshData(force = false) {
         if (this.isLoading && !force) {
-            console.log('⚠️ Загрузка уже выполняется для пользователя Temioka');
+            console.log('⚠️ Загрузка уже выполняется для пользователя User');
             return;
         }
         
@@ -3345,11 +3392,11 @@ class VerificationDashboard {
             user: this.user,
             timestamp: '2025-09-18 11:21:06',
             github: {
-                user: 'Temioka',
+                user: 'User',
                 topRepositories: [
-                    'Temioka/program',
-                    'Temioka/dashboard', 
-                    'Temioka/grn-analyzer'
+                    'User/program',
+                    'User/dashboard', 
+                    'User/grn-analyzer'
                 ]
             },
             
@@ -3373,24 +3420,24 @@ class VerificationDashboard {
     
     getGitHubActivity() {
         return {
-            user: 'Temioka',
+            user: 'User',
             lastActivity: '2025-09-18 11:21:06',
             repositories: [
                 {
-                    name: 'Temioka/program',
-                    url: 'https://github.com/Temioka/program',
+                    name: 'User/program',
+                    url: 'https://github.com/User/program',
                     type: 'main-application',
                     status: 'active'
                 },
                 {
-                    name: 'Temioka/dashboard', 
-                    url: 'https://github.com/Temioka/dashboard',
+                    name: 'User/dashboard', 
+                    url: 'https://github.com/User/dashboard',
                     type: 'verification-dashboard',
                     status: 'active'
                 },
                 {
-                    name: 'Temioka/grn-analyzer',
-                    url: 'https://github.com/Temioka/grn-analyzer', 
+                    name: 'User/grn-analyzer',
+                    url: 'https://github.com/User/grn-analyzer', 
                     type: 'analytics-tool',
                     status: 'active'
                 }
@@ -3404,7 +3451,7 @@ class VerificationDashboard {
     }
     
     syncWithGitHub() {
-        console.log('🔄 Синхронизация с GitHub активностью Temioka...');
+        console.log('🔄 Синхронизация с GitHub активностью User...');
         
         const activity = this.getGitHubActivity();
         
@@ -3502,7 +3549,7 @@ if (typeof Chart !== 'undefined') {
         borderRadius: 6
     };
     
-    console.log('📊 Chart.js настроен для дашборда Temioka');
+    console.log('📊 Chart.js настроен для дашборда User');
 } else {
     console.warn('⚠️ Chart.js не загружен. Графики не будут работать.');
 }
@@ -3513,13 +3560,13 @@ let verificationDashboard = null;
 // Функция инициализации
 function initializeVerificationDashboard() {
     try {
-        console.log('🚀 Инициализация дашборда верификации Temioka');
+        console.log('🚀 Инициализация дашборда верификации User');
         console.log('📅 Текущее время (UTC): 2025-09-18 11:21:06');
-        console.log('👤 Пользователь: Temioka');
+        console.log('👤 Пользователь: User');
         console.log('🔗 GitHub активность:');
-        console.log('   • Temioka/program - https://github.com/Temioka/program');
-        console.log('   • Temioka/dashboard - https://github.com/Temioka/dashboard');
-        console.log('   • Temioka/grn-analyzer - https://github.com/Temioka/grn-analyzer');
+        console.log('   • User/program - https://github.com/User/program');
+        console.log('   • User/dashboard - https://github.com/User/dashboard');
+        console.log('   • User/grn-analyzer - https://github.com/User/grn-analyzer');
         console.log('🚫 ТЕСТОВЫЕ ДАННЫЕ ОТКЛЮЧЕНЫ - только реальные данные от API');
         
         if (verificationDashboard) {
@@ -3532,43 +3579,43 @@ function initializeVerificationDashboard() {
         // Добавляем в глобальную область видимости для отладки
         window.verificationDashboard = verificationDashboard;
         
-        console.log('✅ Дашборд верификации Temioka успешно инициализирован');
+        console.log('✅ Дашборд верификации User успешно инициализирован');
         
-        // Добавляем горячие клавиши для разработки (только для Temioka)
+        // Добавляем горячие клавиши для разработки (только для User)
         document.addEventListener('keydown', (e) => {
             if (e.ctrlKey && e.shiftKey) {
                 switch (e.key) {
                     case 'D':
                         e.preventDefault();
-                        console.log('🔍 Debug Info Temioka:', verificationDashboard.getDebugInfo());
+                        console.log('🔍 Debug Info User:', verificationDashboard.getDebugInfo());
                         break;
                     case 'R':
                         e.preventDefault();
-                        console.log('🔄 Обновление данных Temioka...');
+                        console.log('🔄 Обновление данных User...');
                         verificationDashboard.refreshData(true);
                         break;
                     case 'E':
                         e.preventDefault();
-                        console.log('💾 Экспорт данных Temioka...');
+                        console.log('💾 Экспорт данных User...');
                         verificationDashboard.exportData();
                         break;
                     case 'C':
                         e.preventDefault();
-                        console.log('📊 Обновление графиков Temioka...');
+                        console.log('📊 Обновление графиков User...');
                         verificationDashboard.refreshCharts();
                         break;
                     case 'G':
                         e.preventDefault();
-                        console.log('🔄 Синхронизация GitHub Temioka...');
+                        console.log('🔄 Синхронизация GitHub User...');
                         verificationDashboard.syncWithGitHub();
                         break;
                 }
             }
         });
-        console.log('⌨️ Горячие клавиши активированы для Temioka (Ctrl+Shift+D/R/E/C/G)');
+        console.log('⌨️ Горячие клавиши активированы для User (Ctrl+Shift+D/R/E/C/G)');
         
     } catch (error) {
-        console.error('❌ Критическая ошибка инициализации дашборда Temioka:', error);
+        console.error('❌ Критическая ошибка инициализации дашборда User:', error);
     }
 }
 
@@ -3609,9 +3656,9 @@ function waitForChartJS() {
 // Основная функция запуска
 async function startVerificationDashboard() {
     try {
-        console.log('🚀 Запуск дашборда верификации Temioka');
+        console.log('🚀 Запуск дашборда верификации User');
         console.log('📅 Текущее время (UTC): 2025-09-18 11:21:06');
-        console.log('👤 Пользователь: Temioka');
+        console.log('👤 Пользователь: User');
         console.log('📂 GitHub репозитории: 3 активных');
         
         // Ждем готовности DOM
@@ -3628,10 +3675,10 @@ async function startVerificationDashboard() {
         // Инициализируем дашборд
         initializeVerificationDashboard();
         
-        console.log('🎉 Дашборд верификации Temioka готов к работе!');
+        console.log('🎉 Дашборд верификации User готов к работе!');
         
     } catch (error) {
-        console.error('❌ Ошибка запуска дашборда Temioka:', error);
+        console.error('❌ Ошибка запуска дашборда User:', error);
     }
 }
 
@@ -3641,7 +3688,7 @@ startVerificationDashboard();
 // Очистка при выгрузке страницы
 window.addEventListener('beforeunload', () => {
     if (verificationDashboard) {
-        console.log('👋 Выгрузка дашборда Temioka...');
+        console.log('👋 Выгрузка дашборда User...');
         verificationDashboard.cleanup();
     }
 });
@@ -3649,7 +3696,7 @@ window.addEventListener('beforeunload', () => {
 // Обработка изменения видимости страницы
 document.addEventListener('visibilitychange', () => {
     if (!document.hidden && verificationDashboard) {
-        console.log('👀 Страница стала видимой, обновляем дашборд Temioka');
+        console.log('👀 Страница стала видимой, обновляем дашборд User');
         verificationDashboard.updateTimeDisplay();
         
         setTimeout(() => {
@@ -3675,7 +3722,7 @@ window.initializeVerificationDashboard = initializeVerificationDashboard;
 setTimeout(() => {
     if (verificationDashboard) {
         const debugInfo = verificationDashboard.getDebugInfo();
-        console.log('✅ Проверка системы Temioka завершена:');
+        console.log('✅ Проверка системы User завершена:');
         console.table({
             'Пользователь': debugInfo.user,
             'GitHub пользователь': debugInfo.github.user,
@@ -3692,7 +3739,7 @@ setTimeout(() => {
         
         // Показываем GitHub активность
         const activity = verificationDashboard.getGitHubActivity();
-        console.log('📂 GitHub репозитории Temioka:');
+        console.log('📂 GitHub репозитории User:');
         activity.repositories.forEach(repo => {
             console.log(`   ✓ ${repo.name} (${repo.type}) - ${repo.status}`);
         });
