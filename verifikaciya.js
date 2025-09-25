@@ -1999,30 +1999,30 @@ class VerificationDashboard {
         const totalCount = this.safeNumber(data.totalCount);
         const totalAmount = this.safeNumber(data.totalAmount);
         const confirmedCount = this.safeNumber(data.confirmedCount);
+        const confirmedAmount = this.safeNumber(data.confirmedAmount); // НОВОЕ
         const gisAmount = this.safeNumber(data.gisAmount);
         
         // Рассчитываем проценты
         const confirmationRate = totalCount > 0 ? this.calculatePercentage(confirmedCount, totalCount) : 0;
-        const paidPercentage = totalAmount > 0 ? this.calculatePercentage(gisAmount, totalAmount) : 0;
         
-        // Анимируем карточки с эффектом stagger
+        // Анимируем карточки с эффектом stagger (теперь 6 карточек)
         await this.animateCardsStagger([
             { id: 'total-trips-amount', value: totalAmount, format: 'currency' },
             { id: 'gis-amount', value: gisAmount, format: 'currency' },
             { id: 'total-trips-count', value: totalCount },
             { id: 'confirmed-trips-count', value: confirmedCount },
-            { id: 'confirmation-rate', value: confirmationRate, format: 'percent' },
-            { id: 'paid-percentage', value: paidPercentage, format: 'percent' }
+            { id: 'confirmed-trips-amount', value: confirmedAmount, format: 'currency' }, // НОВАЯ КАРТОЧКА
+            { id: 'confirmation-rate', value: confirmationRate, format: 'percent' }
         ]);
         
-        // Обновляем мини-графики с анимацией
+        // Обновляем мини-графики с анимацией (добавляем новый график)
         await this.animatedMiniChartsUpdate([
             { id: 'summary-chart-1', data: data.amountTrend },
             { id: 'summary-chart-2', data: data.amountTrend },
             { id: 'summary-chart-3', data: data.countTrend },
             { id: 'summary-chart-4', data: data.confirmedTrend },
-            { id: 'summary-chart-5', data: data.rateTrend },
-            { id: 'summary-chart-6', data: data.rateTrend }
+            { id: 'summary-chart-7', data: data.confirmedAmountTrend }, // НОВЫЙ ГРАФИК
+            { id: 'summary-chart-5', data: data.rateTrend }
         ]);
         
         // Ждем перед созданием основных графиков
@@ -2408,18 +2408,18 @@ class VerificationDashboard {
     }
     
     formatCounterValue(value, format) {
-    switch (format) {
-        case 'currency':
-            return this.formatCurrency(value);
-        case 'percent':
-            return this.formatPercentage(value) + '%';
-        case 'hours':
-            return this.formatHours(value);
-        case 'number':
-        default:
-            return this.formatNumber(value);
+        switch (format) {
+            case 'currency':
+                return this.formatCurrency(value);
+            case 'percent':
+                return this.formatPercentage(value) + '%';
+            case 'hours':
+                return this.formatHours(value);
+            case 'number':
+            default:
+                return this.formatNumber(value);
+        }
     }
-}
     
     // ==========================================
     // РАБОТА С ГРАФИКАМИ (с анимациями)
@@ -2902,7 +2902,6 @@ class VerificationDashboard {
                         <div style="font-weight: 600; font-size: 16px; margin-bottom: 4px; color: #ef4444;">Нет данных за данный период</div>
                         <div style="font-size: 14px; opacity: 0.7;">Таблица заполнится после получения данных от базы данных</div>
                         <div style="font-size: 12px; color: #9ca3af; margin-top: 8px;">
-                           Пользователь: ${this.user}
                         </div>
                     </div>
                 </div>
@@ -3068,18 +3067,27 @@ class VerificationDashboard {
     }
     
     formatNumber(number) {
-    const num = this.safeNumber(number);
-    
-    return new Intl.NumberFormat('ru-RU', {
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0,
-        useGrouping: true
-    }).format(num);
-}
+        const num = this.safeNumber(number);
+        
+        const formatted = new Intl.NumberFormat('ru-RU', {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0,
+            useGrouping: true
+        }).format(num);
+        
+        return formatted;
+    }
         
         formatCurrency(number) {
-        const formattedNumber = this.formatNumber(number);
-        return formattedNumber + ' ₽';
+        const num = this.safeNumber(number);
+        
+        const formatted = new Intl.NumberFormat('ru-RU', {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0,
+            useGrouping: true
+        }).format(num);
+        
+        return formatted;
     }
     
     formatPercentage(number, decimals = 1) {
@@ -3560,14 +3568,6 @@ let verificationDashboard = null;
 // Функция инициализации
 function initializeVerificationDashboard() {
     try {
-        console.log('🚀 Инициализация дашборда верификации User');
-        console.log('📅 Текущее время (UTC): 2025-09-18 11:21:06');
-        console.log('👤 Пользователь: User');
-        console.log('🔗 GitHub активность:');
-        console.log('   • User/program - https://github.com/User/program');
-        console.log('   • User/dashboard - https://github.com/User/dashboard');
-        console.log('   • User/grn-analyzer - https://github.com/User/grn-analyzer');
-        console.log('🚫 ТЕСТОВЫЕ ДАННЫЕ ОТКЛЮЧЕНЫ - только реальные данные от API');
         
         if (verificationDashboard) {
             console.log('🔄 Найден существующий экземпляр дашборда, выполняем очистку...');
@@ -3655,12 +3655,7 @@ function waitForChartJS() {
 
 // Основная функция запуска
 async function startVerificationDashboard() {
-    try {
-        console.log('🚀 Запуск дашборда верификации User');
-        console.log('📅 Текущее время (UTC): 2025-09-18 11:21:06');
-        console.log('👤 Пользователь: User');
-        console.log('📂 GitHub репозитории: 3 активных');
-        
+    try {        
         // Ждем готовности DOM
         await waitForDOMReady();
         console.log('✅ DOM готов');
@@ -3722,21 +3717,7 @@ window.initializeVerificationDashboard = initializeVerificationDashboard;
 setTimeout(() => {
     if (verificationDashboard) {
         const debugInfo = verificationDashboard.getDebugInfo();
-        console.log('✅ Проверка системы User завершена:');
-        console.table({
-            'Пользователь': debugInfo.user,
-            'GitHub пользователь': debugInfo.github.user,
-            'Время (UTC)': debugInfo.timestamp,
-            'Текущая вкладка': debugInfo.currentTab,
-            'Период': debugInfo.currentPeriod,
-            'Идет загрузка': debugInfo.isLoading ? 'Да' : 'Нет',
-            'Графиков активно': debugInfo.chartsCount,
-            'Мини-графиков': debugInfo.miniChartsCount,
-            'GitHub репозитории': debugInfo.github.repositories.length,
-            'Тестовые данные': 'ОТКЛЮЧЕНЫ',
-            'API эндпоинт': debugInfo.apiEndpoint
-        });
-        
+        console.log('✅ Проверка системы User завершена:');        
         // Показываем GitHub активность
         const activity = verificationDashboard.getGitHubActivity();
         console.log('📂 GitHub репозитории User:');
