@@ -1827,8 +1827,6 @@ class VerificationDashboard {
                'temioka-2025-09-18-token';
     }
     
-    // ИЗМЕНЕНО: Убрана вся функция generateMockData и связанные с ней методы
-    
     showAnimatedLoading(tabName, show) {
         if (show) {
             this.createAnimatedLoadingOverlay(tabName);
@@ -1854,7 +1852,6 @@ class VerificationDashboard {
                 </div>
                 <div class="verif-loading-text">Загрузка данных</div>
                 <div style="font-size: 0.75rem; color: #9ca3af; margin-top: 8px; text-align: center;">
-                    Пользователь: ${this.user}<br>
                 </div>
             `;
             panel.style.position = 'relative';
@@ -2197,33 +2194,35 @@ class VerificationDashboard {
     }
     
     async animatedChartCreate(canvasId, chartData, chartType) {
-        const canvas = document.getElementById(canvasId);
-        if (!canvas) return;
+    // Показываем индикатор загрузки
+    this.showLoading(canvasId);
+    
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) {
+        console.error(`❌ Canvas не найден: ${canvasId}`);
+        return;
+    }
+    
+    const container = canvas.closest('.verif-chart-container');
+    if (container) {
+        // Анимация появления контейнера
+        container.style.opacity = '0';
+        container.style.transform = 'scale(0.95) translateY(10px)';
         
-        const container = canvas.closest('.verif-chart-container');
-        if (container) {
-            // Подготовка к анимации
-            container.style.opacity = '0';
-            container.style.transform = 'scale(0.95) rotateY(5deg)';
-            
-            // Создаем график
+        // Создаем график
+        setTimeout(() => {
             this.createChart(canvasId, chartData, chartType);
             
             // Анимация появления
-            setTimeout(() => {
-                container.style.transition = 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
-                container.style.opacity = '1';
-                container.style.transform = 'scale(1) rotateY(0deg)';
-                
-                // Добавляем класс для дополнительной анимации
-                container.classList.add('verif-chart-reveal');
-            }, 100);
-        } else {
-            this.createChart(canvasId, chartData, chartType);
-        }
-        
-        await this.waitFor(300);
+            container.style.transition = 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
+            container.style.opacity = '1';
+            container.style.transform = 'scale(1) translateY(0)';
+        }, 300);
+    } else {
+        // Если нет контейнера, просто создаем график
+        this.createChart(canvasId, chartData, chartType);
     }
+}
     
     async animatedTableUpdate(tableId, tableData, tableType) {
         const table = document.getElementById(tableId);
@@ -2425,67 +2424,205 @@ class VerificationDashboard {
     // РАБОТА С ГРАФИКАМИ (с анимациями)
     // ==========================================
     
-        createChart(canvasId, chartData, chartType) {
-        const canvas = document.getElementById(canvasId);
-        if (!canvas) {
-            console.warn(`Canvas с ID ${canvasId} не найден`);
-            return;
-        }
-        
-        if (typeof Chart === 'undefined') {
-            console.error('Chart.js не загружен');
-            return;
-        }
-        
-        // ИСПРАВЛЕНИЕ: Более строгая проверка данных
-        if (!chartData || !chartData.labels || !chartData.datasets || 
-            !Array.isArray(chartData.labels) || !Array.isArray(chartData.datasets)) {
-            console.warn(`Некорректные данные для графика ${canvasId}:`, chartData);
-            return;
-        }
-        
-        // Проверяем видимость canvas
-        if (canvas.offsetParent === null) {
-            this.pendingCharts.set(canvasId, { data: chartData, type: chartType });
-            return;
-        }
-        
-        // Уничтожаем существующий график
-        if (this.charts.has(canvasId)) {
-            try {
-                this.charts.get(canvasId).destroy();
-            } catch (error) {
-                console.warn(`Ошибка уничтожения графика ${canvasId}:`, error);
-            }
-            this.charts.delete(canvasId);
-        }
-        
-        try {
-            const config = this.buildAnimatedChartConfig(chartType, chartData);
-            
-            // ИСПРАВЛЕНИЕ: Проверяем config
-            if (!config) {
-                console.error(`Не удалось создать конфигурацию для графика ${canvasId}`);
+        createChart(canvasId, chartData, chartType = 'bar') {
+            // Проверяем готовность Chart.js
+            if (!this.isChartReady || typeof Chart === 'undefined') {
+                console.warn(`⚠️ Chart.js не готов для ${canvasId}`);
+                setTimeout(() => this.createChart(canvasId, chartData, chartType), 500);
                 return;
             }
             
-            const chart = new Chart(canvas, config);
-            this.charts.set(canvasId, chart);
-            this.pendingCharts.delete(canvasId);
-            
-            console.log(`График ${canvasId} успешно создан`);
-            
-        } catch (error) {
-            console.error(`Ошибка создания графика ${canvasId}:`, error);
-            
-            // ИСПРАВЛЕНИЕ: Показываем сообщение об ошибке на canvas
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) {
+                console.error(`❌ Canvas не найден: ${canvasId}`);
+                return;
+            }
+
+            // Уничтожаем существующий график
+            if (this.charts[canvasId]) {
+                this.charts[canvasId].destroy();
+                delete this.charts[canvasId];
+            }
+
             const ctx = canvas.getContext('2d');
-            ctx.fillStyle = '#ef4444';
-            ctx.font = '16px system-ui';
-            ctx.textAlign = 'center';
-            ctx.fillText('Ошибка загрузки графика', canvas.width / 2, canvas.height / 2);
+
+            // Проверяем данные
+            if (!chartData || !chartData.labels || !chartData.datasets) {
+                console.error(`❌ Некорректные данные для ${canvasId}:`, chartData);
+                this.showNoDataMessage(canvasId);
+                return;
+            }
+
+            // Логируем данные для отладки
+            console.log(`📊 Создание графика ${canvasId}:`, {
+                type: chartType,
+                labels: chartData.labels.length,
+                datasets: chartData.datasets.length
+            });
+
+            const config = {
+                type: chartType,
+                data: chartData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                padding: 20,
+                                usePointStyle: true,
+                                font: {
+                                    family: 'Montserrat, sans-serif',
+                                    size: 12,
+                                    weight: '500'
+                                },
+                                color: '#374151'
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(17, 24, 39, 0.95)',
+                            titleColor: '#ffffff',
+                            bodyColor: '#ffffff',
+                            borderColor: '#ff6b35',
+                            borderWidth: 2,
+                            cornerRadius: 12,
+                            displayColors: true,
+                            titleFont: {
+                                family: 'Montserrat, sans-serif',
+                                size: 13,
+                                weight: '600'
+                            },
+                            bodyFont: {
+                                family: 'Montserrat, sans-serif',
+                                size: 12
+                            },
+                            callbacks: {
+                                title: function(context) {
+                                    return context[0].label;
+                                },
+                                label: function(context) {
+                                    const label = context.dataset.label || '';
+                                    const value = context.parsed.y;
+                                    
+                                    // Форматируем значения в зависимости от типа
+                                    if (label.toLowerCase().includes('сумма') || 
+                                        label.toLowerCase().includes('amount') ||
+                                        label.toLowerCase().includes('оплачено')) {
+                                        return `${label}: ${formatMoney(value)}`;
+                                    } else if (label.toLowerCase().includes('процент') || 
+                                            label.toLowerCase().includes('percentage')) {
+                                        return `${label}: ${value.toFixed(1)}%`;
+                                    } else {
+                                        return `${label}: ${value.toLocaleString('ru-RU')}`;
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    scales: this.getScalesConfig(chartType),
+                    animation: {
+                        duration: 1200,
+                        easing: 'easeOutQuart'
+                    }
+                }
+            };
+
+            try {
+                this.charts[canvasId] = new Chart(ctx, config);
+                console.log(`✅ График ${canvasId} создан успешно`);
+                
+                // Убираем индикатор загрузки
+                this.hideLoading(canvasId);
+                
+            } catch (error) {
+                console.error(`❌ Ошибка создания графика ${canvasId}:`, error);
+                this.showErrorMessage(canvasId);
+            }
         }
-    }
+
+        // Вспомогательные функции для индикаторов
+        showLoading(canvasId) {
+            const loadingId = canvasId.replace('-chart', '-loading');
+            const loading = document.getElementById(loadingId);
+            if (loading) {
+                loading.style.display = 'flex';
+            }
+        }
+
+        hideLoading(canvasId) {
+            const loadingId = canvasId.replace('-chart', '-loading');
+            const loading = document.getElementById(loadingId);
+            if (loading) {
+                loading.style.display = 'none';
+            }
+        }
+
+        showErrorMessage(canvasId) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return;
+            
+            const container = canvas.closest('.verif-chart-container');
+            if (container) {
+                container.innerHTML = `
+                    <div style="
+                        display: flex;
+                        flex-direction: column;
+                        align-items: center;
+                        justify-content: center;
+                        height: 250px;
+                        color: #ef4444;
+                        font-size: 14px;
+                        background: #fef2f2;
+                        border-radius: 12px;
+                        border: 2px dashed #fca5a5;
+                    ">
+                        <svg style="width: 32px; height: 32px; margin-bottom: 8px;" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="15" y1="9" x2="9" y2="15"/>
+                            <line x1="9" y1="9" x2="15" y2="15"/>
+                        </svg>
+                        <div>Ошибка загрузки графика</div>
+                        <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">Попробуйте обновить страницу</div>
+                    </div>
+                `;
+            }
+        }
+
+        showNoDataMessage(canvasId) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return;
+            
+            const container = canvas.closest('.verif-chart-container');
+            if (container) {
+                container.innerHTML = `
+                    <div style="
+                        display: flex;
+                        flex-direction: column;
+                        align-items: center;
+                        justify-content: center;
+                        height: 250px;
+                        color: #6b7280;
+                        font-size: 14px;
+                        background: #f9fafb;
+                        border-radius: 12px;
+                        border: 2px dashed #d1d5db;
+                    ">
+                        <svg style="width: 32px; height: 32px; margin-bottom: 8px;" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M3 3l7.07 16.97 2.51-7.39 7.39-2.51L3 3z"/>
+                            <path d="M13 13l6 6"/>
+                        </svg>
+                        <div>Нет данных для отображения</div>
+                        <div style="font-size: 12px; color: #9ca3af; margin-top: 4px;">Выберите другой период</div>
+                    </div>
+                `;
+            }
+        }
+
     
    buildAnimatedChartConfig(chartType, chartData) {
         // ИСПРАВЛЕНИЕ: Проверяем корректность данных
@@ -3712,17 +3849,3 @@ if (typeof module !== 'undefined' && module.exports) {
 // Добавляем в глобальную область видимости для совместимости
 window.VerificationDashboard = VerificationDashboard;
 window.initializeVerificationDashboard = initializeVerificationDashboard;
-
-// Дополнительная проверка системы через 3 секунды
-setTimeout(() => {
-    if (verificationDashboard) {
-        const debugInfo = verificationDashboard.getDebugInfo();
-        console.log('✅ Проверка системы User завершена:');        
-        // Показываем GitHub активность
-        const activity = verificationDashboard.getGitHubActivity();
-        console.log('📂 GitHub репозитории User:');
-        activity.repositories.forEach(repo => {
-            console.log(`   ✓ ${repo.name} (${repo.type}) - ${repo.status}`);
-        });
-    }
-}, 3000);
